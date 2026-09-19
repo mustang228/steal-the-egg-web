@@ -1,4 +1,4 @@
-const API_URL = "https://steal-the-egg-web.onrender.com";
+const API_URL = "https://steal-the-egg-server.onrender.com";
 
 const tg = window.Telegram?.WebApp;
 
@@ -270,8 +270,8 @@ if ($('exchangeBtn')) {
 
     $('exchangeBtn').onclick = async () => {
 
-        if (!state.data || state.data.tap_coins < 30) {
-            toast('Нужно минимум 30 Tap Coins');
+        if (!state.data || state.data.tap_coins < 1000) {
+            toast('Нужно минимум 1000 Tap Coins');
             return;
         }
 
@@ -877,9 +877,9 @@ async function loadTasks() {
                                     t.progress /
                                     t.target *
                                     100
-                                )}%
-                            "
-                        ></div>
+                                )}%"
+                            >
+                        </div>
 
                     </div>
 
