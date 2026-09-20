@@ -491,13 +491,17 @@ if ($("exchangeBtn")) {
 
     $("exchangeBtn").onclick = async () => {
 
+        /*
+         * 30 Tap Coins = 10 Egg Coins
+         */
+
         if (
             !state.data ||
-            Number(state.data.tap_coins || 0) < 1000
+            Number(state.data.tap_coins || 0) < 30
         ) {
 
             toast(
-                "Нужно минимум 1000 Tap Coins"
+                "Нужно минимум 30 Tap Coins"
             );
 
             return;
@@ -792,10 +796,6 @@ function renderMathQuestion(question) {
                 setData(x.data);
 
 
-                /*
-                 * ПРАВИЛЬНЫЙ ОТВЕТ
-                 */
-
                 if (x.result === "win") {
 
                     $("gameArea").innerHTML = `
@@ -831,10 +831,6 @@ function renderMathQuestion(question) {
                     return;
                 }
 
-
-                /*
-                 * НЕПРАВИЛЬНЫЙ ОТВЕТ
-                 */
 
                 $("gameArea").innerHTML = `
 
@@ -911,7 +907,9 @@ function renderMathQuestion(question) {
                                 );
 
 
-                            setData(result.data);
+                            setData(
+                                result.data
+                            );
 
 
                             if (
@@ -956,6 +954,7 @@ function renderMathQuestion(question) {
                                 );
                             }
 
+
                         } catch (e) {
 
                             toast(e.message);
@@ -983,12 +982,6 @@ if ($("mathBtn")) {
 ========================= */
 
 function renderTic(board) {
-
-    /*
-     * Всегда создаём ровно 9 клеток.
-     * Если сервер прислал меньше 9,
-     * недостающие клетки будут пустыми.
-     */
 
     const safeBoard =
         Array(9).fill("");
@@ -1232,9 +1225,9 @@ async function loadEggs() {
             );
 
 
-        /*
-         * МАГАЗИН
-         */
+        /* =========================
+           МАГАЗИН
+        ========================== */
 
         if (
             state.eggTab ===
@@ -1376,9 +1369,9 @@ async function loadEggs() {
         }
 
 
-        /*
-         * МОИ ЯЙЦА
-         */
+        /* =========================
+           МОИ ЯЙЦА
+        ========================== */
 
         const shop =
             r.shop || {};
@@ -2494,6 +2487,24 @@ function openAvatarSelector() {
                     }
                 };
         });
+}
+
+
+/* =========================
+   КНОПКИ ВЫБОРА АВАТАРА
+========================= */
+
+if ($("avatarButton")) {
+
+    $("avatarButton").onclick =
+        openAvatarSelector;
+}
+
+
+if ($("changeAvatarBtn")) {
+
+    $("changeAvatarBtn").onclick =
+        openAvatarSelector;
 }
 
 
