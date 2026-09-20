@@ -45,17 +45,14 @@ async function api(url, options = {}) {
         }
     });
 
-
     const d = await r.json().catch(() => ({
         ok: false,
         error: "Ошибка сервера"
     }));
 
-
     if (!r.ok || d.ok === false) {
         throw Error(d.error || "Ошибка");
     }
-
 
     return d;
 }
@@ -71,14 +68,11 @@ function toast(t) {
 
     if (!e) return;
 
-
     e.textContent = t;
 
     e.classList.add("show");
 
-
     clearTimeout(window.tt);
-
 
     window.tt = setTimeout(() => {
         e.classList.remove("show");
@@ -101,7 +95,6 @@ function showPage(page) {
             );
         });
 
-
     document
         .querySelectorAll("[data-page]")
         .forEach(x => {
@@ -111,9 +104,7 @@ function showPage(page) {
             );
         });
 
-
     window.scrollTo(0, 0);
-
 
     if (page === "eggs") {
         loadEggs();
@@ -127,18 +118,19 @@ function showPage(page) {
 
 function setData(d) {
 
+    if (!d) return;
+
     state.data = d;
 
 
     /* =========================
        БАЛАНСЫ
-    ========================== */
+    ========================= */
 
     if ($("tapCoins")) {
         $("tapCoins").textContent =
             Number(d.tap_coins || 0).toLocaleString();
     }
-
 
     if ($("eggCoins")) {
         $("eggCoins").textContent =
@@ -148,7 +140,7 @@ function setData(d) {
 
     /* =========================
        СЕРИЯ
-    ========================== */
+    ========================= */
 
     if ($("streak")) {
         $("streak").textContent =
@@ -158,13 +150,12 @@ function setData(d) {
 
     /* =========================
        LEVEL / XP
-    ========================== */
+    ========================= */
 
     if ($("level")) {
         $("level").textContent =
             Number(d.level || 1);
     }
-
 
     const xp = Number(d.xp || 0);
 
@@ -174,12 +165,10 @@ function setData(d) {
             ((Number(d.level || 1)) * 100)
         );
 
-
     if ($("xpText")) {
         $("xpText").textContent =
             `${xp}/${xpRequired} XP`;
     }
-
 
     if ($("xpBar")) {
 
@@ -193,7 +182,6 @@ function setData(d) {
                 );
         }
 
-
         $("xpBar").style.width =
             progress + "%";
     }
@@ -201,29 +189,25 @@ function setData(d) {
 
     /* =========================
        PROFILE
-    ========================== */
+    ========================= */
 
     const firstName =
         state.user?.first_name || "Игрок";
-
 
     if ($("profileName")) {
         $("profileName").textContent =
             firstName;
     }
 
-
     if ($("profileId")) {
         $("profileId").textContent =
             `ID: ${state.user?.id || "—"}`;
     }
 
-
     if ($("profileTap")) {
         $("profileTap").textContent =
             Number(d.tap_coins || 0).toLocaleString();
     }
-
 
     if ($("profileEgg")) {
         $("profileEgg").textContent =
@@ -233,11 +217,10 @@ function setData(d) {
 
     /* =========================
        ЯЙЦА
-    ========================== */
+    ========================= */
 
     let eggsTotal =
         Number(d.eggs_total || 0);
-
 
     if (
         !eggsTotal &&
@@ -254,7 +237,6 @@ function setData(d) {
                 );
     }
 
-
     if ($("profileEggs")) {
         $("profileEggs").textContent =
             eggsTotal;
@@ -263,7 +245,7 @@ function setData(d) {
 
     /* =========================
        ДОСТИЖЕНИЯ
-    ========================== */
+    ========================= */
 
     if ($("profileAch")) {
 
@@ -276,17 +258,14 @@ function setData(d) {
 
     /* =========================
        AVATAR
-    ========================== */
+    ========================= */
 
     if ($("avatarButton")) {
-
         $("avatarButton").textContent =
             d.avatar || "🥚";
     }
 
-
     if ($("profileAvatar")) {
-
         $("profileAvatar").textContent =
             d.avatar || "🥚";
     }
@@ -300,12 +279,9 @@ function setData(d) {
 async function init() {
 
     if (tg) {
-
         tg.ready();
-
         tg.expand();
     }
-
 
     try {
 
@@ -317,12 +293,9 @@ async function init() {
             }
         );
 
-
         state.user = r.user;
 
-
         setData(r.data);
-
 
         if ($("username")) {
 
@@ -332,11 +305,9 @@ async function init() {
                     : state.user.first_name || "Игрок";
         }
 
-
         if ($("app")) {
             $("app").classList.remove("hidden");
         }
-
 
         if (r.login?.claimed) {
 
@@ -344,7 +315,6 @@ async function init() {
                 `🔥 Серия ${r.login.streak} дней · +${r.login.reward} Egg Coins`
             );
         }
-
 
         (r.new_achievements || [])
             .forEach(a => {
@@ -358,20 +328,16 @@ async function init() {
                 }, 700);
             });
 
-
     } catch (e) {
 
         if ($("app")) {
             $("app").classList.remove("hidden");
         }
 
-
         if ($("username")) {
-
             $("username").textContent =
                 "Открой приложение через Telegram";
         }
-
 
         toast(e.message);
     }
@@ -387,9 +353,7 @@ document.addEventListener("click", e => {
     const p =
         e.target.closest("[data-page]");
 
-
     if (p) {
-
         showPage(
             p.dataset.page
         );
@@ -407,40 +371,33 @@ if ($("eggTap")) {
 
         const b = e.currentTarget;
 
-        const r =
+        const rect =
             b.getBoundingClientRect();
-
 
         const f =
             document.createElement("div");
-
 
         f.className = "floater";
 
         f.textContent = "+1";
 
-
         f.style.left =
             (
-                r.left +
-                r.width / 2 -
+                rect.left +
+                rect.width / 2 -
                 10
             ) + "px";
 
-
         f.style.top =
-            (r.top + 40) + "px";
-
+            (rect.top + 40) + "px";
 
         if ($("tapFloaters")) {
             $("tapFloaters").appendChild(f);
         }
 
-
         setTimeout(() => {
             f.remove();
         }, 800);
-
 
         if (tg?.HapticFeedback) {
 
@@ -448,23 +405,19 @@ if ($("eggTap")) {
                 .impactOccurred("light");
         }
 
-
         try {
 
             const r = await api(
                 "/api/tap",
                 {
                     method: "POST",
-
                     body: JSON.stringify({
                         amount: 1
                     })
                 }
             );
 
-
             setData(r.data);
-
 
             (r.new_achievements || [])
                 .forEach(a => {
@@ -473,7 +426,6 @@ if ($("eggTap")) {
                         `🏆 ${a.name} · +${a.reward}`
                     );
                 });
-
 
         } catch (e) {
 
@@ -491,10 +443,6 @@ if ($("exchangeBtn")) {
 
     $("exchangeBtn").onclick = async () => {
 
-        /*
-         * 30 Tap Coins = 10 Egg Coins
-         */
-
         if (
             !state.data ||
             Number(state.data.tap_coins || 0) < 30
@@ -507,25 +455,22 @@ if ($("exchangeBtn")) {
             return;
         }
 
-
         try {
 
-            const r = await api(
-                "/api/exchange",
-                {
-                    method: "POST",
-                    body: "{}"
-                }
-            );
-
+            const r =
+                await api(
+                    "/api/exchange",
+                    {
+                        method: "POST",
+                        body: "{}"
+                    }
+                );
 
             setData(r.data);
-
 
             toast(
                 `🥚 +${r.received} Egg Coins`
             );
-
 
         } catch (e) {
 
@@ -552,7 +497,6 @@ if ($("guessBtn")) {
                     body: "{}"
                 }
             );
-
 
             $("gameArea").innerHTML = `
 
@@ -584,17 +528,14 @@ if ($("guessBtn")) {
                 <p id="guessInfo"></p>
             `;
 
-
             $("guessSend").onclick =
                 async () => {
 
                     const input =
                         $("guessInput");
 
-
                     const guess =
                         Number(input.value);
-
 
                     if (
                         !Number.isInteger(guess) ||
@@ -608,7 +549,6 @@ if ($("guessBtn")) {
 
                         return;
                     }
-
 
                     try {
 
@@ -624,7 +564,6 @@ if ($("guessBtn")) {
                                         })
                                 }
                             );
-
 
                         if (
                             r.result ===
@@ -642,9 +581,7 @@ if ($("guessBtn")) {
                             return;
                         }
 
-
                         setData(r.data);
-
 
                         $("gameArea").innerHTML = `
 
@@ -675,17 +612,14 @@ if ($("guessBtn")) {
                             </button>
                         `;
 
-
                         $("guessAgain").onclick =
                             () => $("guessBtn").click();
-
 
                     } catch (e) {
 
                         toast(e.message);
                     }
                 };
-
 
         } catch (e) {
 
@@ -712,11 +646,9 @@ async function startMathGame() {
                 }
             );
 
-
         renderMathQuestion(
             r.question
         );
-
 
     } catch (e) {
 
@@ -755,13 +687,11 @@ function renderMathQuestion(question) {
         <p id="mathInfo"></p>
     `;
 
-
     $("mathSend").onclick =
         async () => {
 
             const value =
                 $("mathInput").value;
-
 
             if (value === "") {
 
@@ -771,11 +701,6 @@ function renderMathQuestion(question) {
 
                 return;
             }
-
-
-            const answer =
-                Number(value);
-
 
             try {
 
@@ -787,14 +712,13 @@ function renderMathQuestion(question) {
 
                             body:
                                 JSON.stringify({
-                                    answer
+                                    answer:
+                                        Number(value)
                                 })
                         }
                     );
 
-
                 setData(x.data);
-
 
                 if (x.result === "win") {
 
@@ -823,24 +747,19 @@ function renderMathQuestion(question) {
                         </button>
                     `;
 
-
                     $("mathNext").onclick =
                         startMathGame;
 
-
                     return;
                 }
-
 
                 renderMathQuestion(
                     x.question
                 );
 
-
                 toast(
                     `❌ Неправильно. Правильный ответ: ${x.correct}`
                 );
-
 
             } catch (e) {
 
@@ -860,6 +779,9 @@ if ($("mathBtn")) {
 /* =========================
    КРЕСТИКИ-НОЛИКИ
 ========================= */
+
+let ticBusy = false;
+
 
 function renderTic(board) {
 
@@ -892,6 +814,7 @@ function renderTic(board) {
             ${safeBoard.map((v, i) => `
 
                 <button
+                    class="tic-cell"
                     data-cell="${i}"
                     type="button"
                     ${v !== "" ? "disabled" : ""}
@@ -920,30 +843,30 @@ function renderTic(board) {
             button.onclick =
                 async () => {
 
-                    /*
-                     * Сразу блокируем кнопку,
-                     * чтобы нельзя было отправить
-                     * несколько ходов подряд.
-                     */
-
-                    button.disabled = true;
-
+                    if (ticBusy) {
+                        return;
+                    }
 
                     const index =
                         Number(
                             button.dataset.cell
                         );
 
-
                     if (
                         !Number.isInteger(index) ||
                         index < 0 ||
                         index > 8
                     ) {
-
                         return;
                     }
 
+                    ticBusy = true;
+
+                    document
+                        .querySelectorAll("[data-cell]")
+                        .forEach(x => {
+                            x.disabled = true;
+                        });
 
                     try {
 
@@ -961,6 +884,9 @@ function renderTic(board) {
                             );
 
 
+                        /*
+                         * Игра продолжается.
+                         */
                         if (
                             r.result ===
                             "continue"
@@ -970,12 +896,16 @@ function renderTic(board) {
                                 r.board
                             );
 
+                            ticBusy = false;
+
                             return;
                         }
 
 
+                        /*
+                         * Игра закончилась.
+                         */
                         if (r.data) {
-
                             setData(
                                 r.data
                             );
@@ -984,7 +914,6 @@ function renderTic(board) {
 
                         let title =
                             "❌ Поражение";
-
 
                         if (
                             r.result ===
@@ -1010,15 +939,32 @@ function renderTic(board) {
                                 ${title}
                             </h3>
 
-                            <p>
+                            <div class="tic">
+
                                 ${
-                                    r.result === "win"
-                                        ? "Ты выиграл!"
-                                        : r.result === "draw"
-                                            ? "Поле заполнено."
-                                            : "Компьютер победил."
+                                    Array.isArray(r.board)
+                                        ? r.board
+                                            .slice(0, 9)
+                                            .map(cell => `
+                                                <button
+                                                    class="tic-cell"
+                                                    type="button"
+                                                    disabled
+                                                >
+                                                    ${
+                                                        cell === "X"
+                                                            ? "❌"
+                                                            : cell === "O"
+                                                                ? "⭕"
+                                                                : "⬜"
+                                                    }
+                                                </button>
+                                            `)
+                                            .join("")
+                                        : ""
                                 }
-                            </p>
+
+                            </div>
 
                             <p>
                                 Награда:
@@ -1036,15 +982,38 @@ function renderTic(board) {
                         `;
 
 
-                        $("ticAgain").onclick =
-                            () => $("ticBtn").click();
+                        if ($("ticAgain")) {
+
+                            $("ticAgain").onclick =
+                                () => {
+
+                                    ticBusy = false;
+
+                                    if ($("ticBtn")) {
+                                        $("ticBtn").click();
+                                    }
+                                };
+                        }
 
 
                     } catch (e) {
 
-                        button.disabled = false;
+                        ticBusy = false;
 
                         toast(e.message);
+
+                        /*
+                         * После ошибки снова разрешаем
+                         * только свободные клетки.
+                         */
+                        document
+                            .querySelectorAll("[data-cell]")
+                            .forEach(x => {
+                                x.disabled =
+                                    x.dataset.cell !== undefined
+                                        ? false
+                                        : false;
+                            });
                     }
                 };
         });
@@ -1055,6 +1024,10 @@ if ($("ticBtn")) {
 
     $("ticBtn").onclick =
         async () => {
+
+            if (ticBusy) {
+                return;
+            }
 
             try {
 
@@ -1067,13 +1040,15 @@ if ($("ticBtn")) {
                         }
                     );
 
+                ticBusy = false;
 
                 renderTic(
                     r.board
                 );
 
-
             } catch (e) {
+
+                ticBusy = false;
 
                 toast(e.message);
             }
@@ -1081,29 +1056,9 @@ if ($("ticBtn")) {
 }
 
 
-/* =========================================================
-   ЯЙЦА / СУНДУКИ
-========================================================= */
-
-/*
- * ВАЖНО:
- *
- * Вкладка "shop" из старого index.html
- * теперь автоматически означает "Сундуки".
- *
- * Поэтому даже если index.html пока содержит:
- *
- * data-tab="shop"
- *
- * всё равно будет открываться магазин сундуков.
- *
- * Вторая вкладка:
- *
- * data-tab="collection"
- *
- * остаётся "Мои яйца".
- */
-
+/* =========================
+   ВКЛАДКИ ЯИЦ
+========================= */
 
 document
     .querySelectorAll(".tab")
@@ -1119,30 +1074,18 @@ document
                     );
                 });
 
-
             t.classList.add("active");
 
-
             /*
-             * Старый tab="shop"
-             * теперь используется как
-             * вкладка сундуков.
+             * Старый index.html пока может иметь
+             * data-tab="shop".
+             *
+             * Если там shop — показываем сундуки.
              */
-
-            if (
-                t.dataset.tab === "shop" ||
-                t.dataset.tab === "chests"
-            ) {
-
-                state.eggTab =
-                    "chests";
-
-            } else {
-
-                state.eggTab =
-                    t.dataset.tab;
-            }
-
+            state.eggTab =
+                t.dataset.tab === "collection"
+                    ? "collection"
+                    : "chests";
 
             loadEggs();
         };
@@ -1156,27 +1099,316 @@ if ($("refreshEggs")) {
 }
 
 
+/* =========================
+   ЯЙЦА / СУНДУКИ
+========================= */
+
 async function loadEggs() {
 
-    /*
-     * =========================
-     * СУНДУКИ
-     * =========================
-     */
+    try {
 
-    if (state.eggTab === "chests") {
+        /*
+         * Мои яйца.
+         */
+        if (
+            state.eggTab ===
+            "collection"
+        ) {
 
-        await loadChestPage();
+            await loadEggCollection();
 
-        return;
+            return;
+        }
+
+
+        /*
+         * Всё остальное = сундуки.
+         */
+        await loadChestShop();
+
+    } catch (e) {
+
+        toast(e.message);
     }
+}
 
 
-    /*
-     * =========================
-     * МОИ ЯЙЦА
-     * =========================
-     */
+/* =========================
+   МАГАЗИН СУНДУКОВ
+========================= */
+
+async function loadChestShop() {
+
+    try {
+
+        const r =
+            await api(
+                "/api/chests"
+            );
+
+        const chests =
+            r.chests ||
+            r.items ||
+            [];
+
+
+        const entries =
+            Array.isArray(chests)
+                ? chests.map(chest => [
+                    String(
+                        chest.id ??
+                        chest.chest_id
+                    ),
+                    chest
+                ])
+                : Object.entries(chests);
+
+
+        if (!$("eggContent")) {
+            return;
+        }
+
+
+        $("eggContent").innerHTML = `
+
+            <div class="egg-item">
+
+                <h3>
+                    🎁 Сундуки
+                </h3>
+
+                <p>
+                    Покупай сундуки за Egg Coins
+                    и получай случайные награды.
+                </p>
+
+            </div>
+
+            ${
+                entries.length
+                    ? entries.map(([id, chest]) => {
+
+                        const chestId =
+                            chest.id ??
+                            chest.chest_id ??
+                            id;
+
+                        const owned =
+                            Number(
+                                chest.owned ??
+                                chest.count ??
+                                0
+                            );
+
+                        const price =
+                            Number(
+                                chest.price || 0
+                            );
+
+                        return `
+
+                            <div class="egg-item">
+
+                                <div class="egg-top">
+
+                                    <div>
+
+                                        <div class="egg-name">
+
+                                            ${esc(
+                                                chest.name ||
+                                                `Сундук #${chestId}`
+                                            )}
+
+                                        </div>
+
+                                        <div class="rarity">
+
+                                            🎁 Сундук
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="price">
+
+                                        ${price.toLocaleString()}
+                                        🥚
+
+                                    </div>
+
+                                </div>
+
+
+                                <p>
+
+                                    📦 У тебя:
+                                    <b>${owned}</b>
+
+                                </p>
+
+
+                                <button
+                                    class="action buy-chest"
+                                    data-id="${esc(chestId)}"
+                                    type="button"
+                                >
+
+                                    🛒 Купить
+
+                                </button>
+
+
+                                ${
+                                    owned > 0
+                                        ? `
+
+                                            <button
+                                                class="action open-chest"
+                                                data-id="${esc(chestId)}"
+                                                type="button"
+                                            >
+
+                                                🎁 Открыть
+
+                                            </button>
+
+                                        `
+                                        : ""
+                                }
+
+                            </div>
+
+                        `;
+
+                    }).join("")
+                    : `
+
+                        <div class="egg-item">
+
+                            🎁 Сундуков пока нет.
+
+                        </div>
+
+                    `
+            }
+
+        `;
+
+
+        /*
+         * Покупка.
+         */
+        document
+            .querySelectorAll(".buy-chest")
+            .forEach(button => {
+
+                button.onclick =
+                    async () => {
+
+                        const chestId =
+                            Number(
+                                button.dataset.id
+                            );
+
+                        if (
+                            !Number.isInteger(
+                                chestId
+                            )
+                        ) {
+
+                            toast(
+                                "Ошибка сундука"
+                            );
+
+                            return;
+                        }
+
+
+                        button.disabled = true;
+
+                        try {
+
+                            const x =
+                                await api(
+                                    "/api/chests/buy",
+                                    {
+                                        method:
+                                            "POST",
+
+                                        body:
+                                            JSON.stringify({
+                                                chest_id:
+                                                    chestId
+                                            })
+                                    }
+                                );
+
+
+                            if (x.data) {
+
+                                setData(
+                                    x.data
+                                );
+                            }
+
+
+                            toast(
+                                x.message ||
+                                `🎁 Сундук куплен!`
+                            );
+
+
+                            await loadChestShop();
+
+
+                        } catch (e) {
+
+                            toast(
+                                e.message
+                            );
+
+                            button.disabled =
+                                false;
+                        }
+                    };
+            });
+
+
+        /*
+         * Открытие.
+         */
+        document
+            .querySelectorAll(".open-chest")
+            .forEach(button => {
+
+                button.onclick =
+                    async () => {
+
+                        const chestId =
+                            Number(
+                                button.dataset.id
+                            );
+
+                        await openChest(
+                            chestId
+                        );
+                    };
+            });
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+/* =========================
+   МОИ ЯЙЦА
+========================= */
+
+async function loadEggCollection() {
 
     try {
 
@@ -1189,22 +1421,17 @@ async function loadEggs() {
         const shop =
             r.shop || {};
 
-
         const owned =
             r.owned || {};
 
 
         const entries =
             Array.isArray(shop)
-                ? shop.map(
-                    e => [
-                        String(e.id),
-                        e
-                    ]
-                )
-                : Object.entries(
-                    shop
-                );
+                ? shop.map(e => [
+                    String(e.id),
+                    e
+                ])
+                : Object.entries(shop);
 
 
         const ownedEntries =
@@ -1216,6 +1443,11 @@ async function loadEggs() {
             );
 
 
+        if (!$("eggContent")) {
+            return;
+        }
+
+
         if (!ownedEntries.length) {
 
             $("eggContent").innerHTML = `
@@ -1225,6 +1457,7 @@ async function loadEggs() {
                     🎒 У тебя пока нет яиц.
 
                 </div>
+
             `;
 
             return;
@@ -1243,12 +1476,10 @@ async function loadEggs() {
 
                                 <div class="egg-name">
 
-                                    ${
-                                        esc(
-                                            e.emoji ||
-                                            "🥚"
-                                        )
-                                    }
+                                    ${esc(
+                                        e.emoji ||
+                                        "🥚"
+                                    )}
 
                                     ${esc(
                                         e.name
@@ -1284,7 +1515,9 @@ async function loadEggs() {
                             data-id="${id}"
                             type="button"
                         >
+
                             🥚 Открыть
+
                         </button>
 
                     </div>
@@ -1322,22 +1555,21 @@ async function loadEggs() {
                                 );
 
 
-                            setData(
-                                x.data
-                            );
+                            if (x.data) {
+
+                                setData(
+                                    x.data
+                                );
+                            }
 
 
                             toast(
-                                `🎉 ${
-                                    x.egg?.emoji ||
-                                    "🥚"
-                                } Открыто · +${
-                                    x.reward || 0
-                                } Egg Coins`
+                                x.message ||
+                                `🎉 ${x.egg?.emoji || "🥚"} Яйцо открыто`
                             );
 
 
-                            loadEggs();
+                            loadEggCollection();
 
 
                         } catch (e) {
@@ -1357,632 +1589,18 @@ async function loadEggs() {
 }
 
 
-/* =========================================================
-   СТРАНИЦА СУНДУКОВ
-========================================================= */
-
-async function loadChestPage() {
-
-    try {
-
-        const r =
-            await api(
-                "/api/chests"
-            );
-
-
-        const chests =
-            r.chests ||
-            r.items ||
-            [];
-
-
-        const entries =
-            Array.isArray(chests)
-                ? chests
-                : Object.entries(chests)
-                    .map(([id, chest]) => ({
-                        ...chest,
-                        id:
-                            chest.id ??
-                            chest.chest_id ??
-                            id
-                    }));
-
-
-        $("eggContent").innerHTML = `
-
-            <div class="item-card">
-
-                <h3>
-                    🎁 Сундуки
-                </h3>
-
-                <p>
-                    Покупай сундуки за Egg Coins
-                    и получай яйца, питомцев,
-                    предметы, монеты или XP.
-                </p>
-
-            </div>
-
-            ${
-                entries.length
-                    ? entries.map(chest => {
-
-                        const count =
-                            Number(
-                                chest.count ??
-                                chest.owned ??
-                                0
-                            );
-
-
-                        return `
-
-                            <div class="item-card">
-
-                                <div class="item-top">
-
-                                    <b>
-                                        ${esc(
-                                            chest.name ||
-                                            chest.chest_name ||
-                                            `Сундук #${chest.id}`
-                                        )}
-                                    </b>
-
-                                    <span class="price">
-
-                                        ${Number(
-                                            chest.price || 0
-                                        ).toLocaleString()}
-
-                                        🥚
-
-                                    </span>
-
-                                </div>
-
-
-                                <p>
-
-                                    📦 У тебя:
-                                    ${count}
-
-                                </p>
-
-
-                                ${
-                                    count > 0
-                                        ? `
-
-                                            <button
-                                                class="action open-chest"
-                                                data-id="${chest.id}"
-                                                type="button"
-                                            >
-                                                🎁 Открыть
-                                            </button>
-
-                                        `
-                                        : ""
-                                }
-
-
-                                <button
-                                    class="action buy-chest"
-                                    data-id="${chest.id}"
-                                    type="button"
-                                >
-
-                                    💰 Купить за
-                                    ${Number(
-                                        chest.price || 0
-                                    ).toLocaleString()}
-                                    🥚
-
-                                </button>
-
-                            </div>
-
-                        `;
-
-                    }).join("")
-                    : `
-
-                        <div class="item-card">
-
-                            🎁 Сундуков пока нет.
-
-                        </div>
-
-                    `
-            }
-
-        `;
-
-
-        /*
-         * =========================
-         * ОТКРЫТЬ СУНДУК
-         * =========================
-         */
-
-        document
-            .querySelectorAll(".open-chest")
-            .forEach(button => {
-
-                button.onclick =
-                    async () => {
-
-                        await openChest(
-                            Number(
-                                button.dataset.id
-                            )
-                        );
-                    };
-            });
-
-
-        /*
-         * =========================
-         * КУПИТЬ СУНДУК
-         * =========================
-         */
-
-        document
-            .querySelectorAll(".buy-chest")
-            .forEach(button => {
-
-                button.onclick =
-                    async () => {
-
-                        await buyChest(
-                            Number(
-                                button.dataset.id
-                            )
-                        );
-                    };
-            });
-
-
-    } catch (e) {
-
-        toast(e.message);
-    }
-}
-
-
-/* =========================================================
-   ПОКУПКА СУНДУКА
-========================================================= */
-
-async function buyChest(chestId) {
-
-    try {
-
-        const r =
-            await api(
-                "/api/chests/buy",
-                {
-                    method:
-                        "POST",
-
-                    body:
-                        JSON.stringify({
-                            chest_id:
-                                chestId
-                        })
-                }
-            );
-
-
-        /*
-         * Обновляем баланс Egg Coins
-         * и остальные данные игрока.
-         */
-
-        if (r.data) {
-
-            setData(
-                r.data
-            );
-        }
-
-
-        toast(
-            r.message ||
-            `🎁 Сундук куплен!`
-        );
-
-
-        /*
-         * Обновляем список сундуков,
-         * чтобы сразу появился +1.
-         */
-
-        loadChestPage();
-
-
-    } catch (e) {
-
-        toast(
-            e.message
-        );
-    }
-}
-
-
-/* =========================================================
-   ОТКРЫТИЕ СУНДУКА
-========================================================= */
-
-async function openChest(chestId) {
-
-    try {
-
-        const r =
-            await api(
-                "/api/chests/open",
-                {
-                    method:
-                        "POST",
-
-                    body:
-                        JSON.stringify({
-                            chest_id:
-                                chestId
-                        })
-                }
-            );
-
-
-        if (r.data) {
-
-            setData(
-                r.data
-            );
-        }
-
-
-        /*
-         * Показываем конкретную награду,
-         * если сервер её вернул.
-         */
-
-        if (
-            r.reward?.type === "egg" &&
-            r.reward.egg
-        ) {
-
-            toast(
-                `🥚 Выпало яйцо: ${
-                    r.reward.egg.name ||
-                    "Яйцо"
-                }`
-            );
-
-        } else if (
-            r.reward?.type === "pet" &&
-            r.reward.pet
-        ) {
-
-            toast(
-                `🐾 Выпал питомец: ${
-                    r.reward.pet.name ||
-                    "Питомец"
-                }`
-            );
-
-        } else if (
-            r.reward?.type === "coins"
-        ) {
-
-            toast(
-                `🥚 +${
-                    r.reward.amount || 0
-                } Egg Coins`
-            );
-
-        } else if (
-            r.reward?.type === "booster" &&
-            r.reward.item
-        ) {
-
-            toast(
-                `⚡ ${
-                    r.reward.item.name ||
-                    "Бустер"
-                }`
-            );
-
-        } else if (
-            r.reward?.type === "xp"
-        ) {
-
-            toast(
-                `⭐ +${
-                    r.reward.amount || 0
-                } XP`
-            );
-
-        } else {
-
-            toast(
-                r.message ||
-                "🎁 Сундук открыт!"
-            );
-        }
-
-
-        /*
-         * Обновляем текущую вкладку.
-         */
-
-        if (
-            document
-                .getElementById("eggs")
-                ?.classList
-                .contains("active")
-        ) {
-
-            loadChestPage();
-
-        } else {
-
-            loadChests();
-        }
-
-
-    } catch (e) {
-
-        toast(
-            e.message
-        );
-    }
-}
-
-
-/* =========================================================
-   СУНДУКИ В МОДАЛЬНОМ ОКНЕ
-========================================================= */
-
-async function loadChests() {
-
-    try {
-
-        const r =
-            await api(
-                "/api/chests"
-            );
-
-
-        const chests =
-            r.chests ||
-            r.items ||
-            [];
-
-
-        const entries =
-            Array.isArray(chests)
-                ? chests
-                : Object.entries(chests)
-                    .map(([id, chest]) => ({
-                        ...chest,
-                        id:
-                            chest.id ??
-                            chest.chest_id ??
-                            id
-                    }));
-
-
-        openModal(`
-
-            <h2>
-                🎁 Сундуки
-            </h2>
-
-            <p>
-                Открывай сундуки и получай
-                яйца, питомцев, предметы,
-                монеты или XP.
-            </p>
-
-            ${
-                entries.length
-                    ? entries.map(chest => {
-
-                        const count =
-                            Number(
-                                chest.count ??
-                                chest.owned ??
-                                0
-                            );
-
-
-                        return `
-
-                            <div class="item-card">
-
-                                <div class="item-top">
-
-                                    <b>
-                                        ${esc(
-                                            chest.name ||
-                                            chest.chest_name ||
-                                            `Сундук #${chest.id}`
-                                        )}
-                                    </b>
-
-                                    <span class="price">
-
-                                        ${Number(
-                                            chest.price || 0
-                                        ).toLocaleString()}
-
-                                        🥚
-
-                                    </span>
-
-                                </div>
-
-
-                                <p>
-
-                                    📦 У тебя:
-                                    ${count}
-
-                                </p>
-
-
-                                ${
-                                    count > 0
-                                        ? `
-
-                                            <button
-                                                class="action open-chest"
-                                                data-id="${chest.id}"
-                                                type="button"
-                                            >
-                                                🎁 Открыть
-                                            </button>
-
-                                        `
-                                        : ""
-                                }
-
-
-                                <button
-                                    class="action buy-chest"
-                                    data-id="${chest.id}"
-                                    type="button"
-                                >
-
-                                    💰 Купить
-
-                                </button>
-
-                            </div>
-
-                        `;
-
-                    }).join("")
-                    : `
-
-                        <div class="item-card">
-
-                            🎁 Сундуков пока нет.
-
-                        </div>
-
-                    `
-            }
-
-        `);
-
-
-        document
-            .querySelectorAll(".open-chest")
-            .forEach(button => {
-
-                button.onclick =
-                    () => openChest(
-                        Number(
-                            button.dataset.id
-                        )
-                    );
-
-            });
-
-
-        document
-            .querySelectorAll(".buy-chest")
-            .forEach(button => {
-
-                button.onclick =
-                    () => buyChestFromModal(
-                        Number(
-                            button.dataset.id
-                        )
-                    );
-
-            });
-
-
-    } catch (e) {
-
-        toast(e.message);
-    }
-}
-
-
-/* =========================================================
-   ПОКУПКА СУНДУКА В МОДАЛКЕ
-========================================================= */
-
-async function buyChestFromModal(chestId) {
-
-    try {
-
-        const r =
-            await api(
-                "/api/chests/buy",
-                {
-                    method:
-                        "POST",
-
-                    body:
-                        JSON.stringify({
-                            chest_id:
-                                chestId
-                        })
-                }
-            );
-
-
-        if (r.data) {
-
-            setData(
-                r.data
-            );
-        }
-
-
-        toast(
-            r.message ||
-            "🎁 Сундук куплен!"
-        );
-
-
-        loadChests();
-
-
-    } catch (e) {
-
-        toast(
-            e.message
-        );
-    }
-}
-
-
-if ($("chestsBtn")) {
-
-    $("chestsBtn").onclick =
-        loadChests;
-}
-
-
-/* =========================================================
-   МОДАЛЬНОЕ ОКНО
-========================================================= */
+/* =========================
+   MODAL
+========================= */
 
 function openModal(html) {
 
+    if (!$("modal") || !$("modalContent")) {
+        return;
+    }
+
     $("modalContent").innerHTML =
         html;
-
 
     $("modal")
         .classList
@@ -1991,6 +1609,10 @@ function openModal(html) {
 
 
 function closeModal() {
+
+    if (!$("modal")) {
+        return;
+    }
 
     $("modal")
         .classList
@@ -2021,9 +1643,9 @@ if ($("modal")) {
 }
 
 
-/* =========================================================
+/* =========================
    ДОСТИЖЕНИЯ
-========================================================= */
+========================= */
 
 if ($("achievementsBtn")) {
 
@@ -2087,7 +1709,6 @@ if ($("achievementsBtn")) {
 
                 `);
 
-
             } catch (e) {
 
                 toast(e.message);
@@ -2096,9 +1717,9 @@ if ($("achievementsBtn")) {
 }
 
 
-/* =========================================================
+/* =========================
    ЛИДЕРБОРД
-========================================================= */
+========================= */
 
 if ($("leaderboardBtn")) {
 
@@ -2172,7 +1793,6 @@ if ($("leaderboardBtn")) {
                             .join("")
                     }
 
-
                     <p>
 
                         Твоё место:
@@ -2184,7 +1804,6 @@ if ($("leaderboardBtn")) {
 
                 `);
 
-
             } catch (e) {
 
                 toast(e.message);
@@ -2193,9 +1812,9 @@ if ($("leaderboardBtn")) {
 }
 
 
-/* =========================================================
+/* =========================
    ЕЖЕДНЕВНЫЕ ЗАДАНИЯ
-========================================================= */
+========================= */
 
 async function loadTasks() {
 
@@ -2250,7 +1869,6 @@ async function loadTasks() {
                                 · 🎁 +${t.reward}
 
                             </p>
-
 
                             <button
                                 class="action claim-task"
@@ -2345,9 +1963,9 @@ if ($("tasksBtn")) {
 }
 
 
-/* =========================================================
+/* =========================
    ЕЖЕДНЕВНОЙ БОНУС
-========================================================= */
+========================= */
 
 if ($("bonusBtn")) {
 
@@ -2386,9 +2004,9 @@ if ($("bonusBtn")) {
 }
 
 
-/* =========================================================
+/* =========================
    BOSS
-========================================================= */
+========================= */
 
 async function loadBoss() {
 
@@ -2425,9 +2043,7 @@ async function loadBoss() {
             </div>
 
             <div class="boss-hp">
-
                 ${hp}/${maxHp}
-
             </div>
 
             <div class="boss-bar">
@@ -2520,9 +2136,9 @@ if ($("bossBtn")) {
 }
 
 
-/* =========================================================
+/* =========================
    ПРЕДМЕТЫ
-========================================================= */
+========================= */
 
 async function loadItems() {
 
@@ -2760,9 +2376,9 @@ if ($("profileItems")) {
 }
 
 
-/* =========================================================
+/* =========================
    ПИТОМЦЫ
-========================================================= */
+========================= */
 
 async function loadPets() {
 
@@ -2879,7 +2495,7 @@ async function loadPets() {
                                     "Бонус"
                                 )}
 
-                               :
+                                :
                                 +${p.bonus_value || 0}
 
                             </p>
@@ -2958,7 +2574,7 @@ async function loadPets() {
                                     "Бонус"
                                 )}
 
-                               :
+                                :
                                 +${p.bonus_value || 0}
 
                             </p>
@@ -3041,9 +2657,345 @@ if ($("profilePets")) {
 }
 
 
-/* =========================================================
+/* =========================
+   ОТДЕЛЬНОЕ ОКНО СУНДУКОВ
+========================= */
+
+async function loadChests() {
+
+    try {
+
+        const r =
+            await api(
+                "/api/chests"
+            );
+
+
+        const chests =
+            r.chests ||
+            r.items ||
+            [];
+
+
+        const entries =
+            Array.isArray(chests)
+                ? chests.map(chest => [
+                    String(
+                        chest.id ??
+                        chest.chest_id
+                    ),
+                    chest
+                ])
+                : Object.entries(chests);
+
+
+        openModal(`
+
+            <h2>
+                🎁 Сундуки
+            </h2>
+
+            <p>
+                Покупай сундуки за Egg Coins
+                и получай случайные награды.
+            </p>
+
+            ${
+                entries.length
+                    ? entries.map(([id, chest]) => {
+
+                        const chestId =
+                            chest.id ??
+                            chest.chest_id ??
+                            id;
+
+                        const owned =
+                            Number(
+                                chest.owned ??
+                                chest.count ??
+                                0
+                            );
+
+                        const price =
+                            Number(
+                                chest.price || 0
+                            );
+
+                        return `
+
+                            <div class="item-card">
+
+                                <div class="item-top">
+
+                                    <b>
+                                        ${esc(
+                                            chest.name ||
+                                            `Сундук #${chestId}`
+                                        )}
+                                    </b>
+
+                                    <span class="price">
+
+                                        ${price.toLocaleString()}
+                                        🥚
+
+                                    </span>
+
+                                </div>
+
+                                <p>
+
+                                    📦 У тебя:
+                                    ${owned}
+
+                                </p>
+
+                                <button
+                                    class="action buy-chest-modal"
+                                    data-id="${chestId}"
+                                    type="button"
+                                >
+
+                                    🛒 Купить
+
+                                </button>
+
+                                ${
+                                    owned > 0
+                                        ? `
+                                            <button
+                                                class="action open-chest-modal"
+                                                data-id="${chestId}"
+                                                type="button"
+                                            >
+                                                🎁 Открыть
+                                            </button>
+                                        `
+                                        : ""
+                                }
+
+                            </div>
+
+                        `;
+
+                    }).join("")
+                    : `
+
+                        <div class="item-card">
+
+                            🎁 Сундуков пока нет.
+
+                        </div>
+
+                    `
+            }
+
+        `);
+
+
+        document
+            .querySelectorAll(".buy-chest-modal")
+            .forEach(button => {
+
+                button.onclick =
+                    async () => {
+
+                        try {
+
+                            const x =
+                                await api(
+                                    "/api/chests/buy",
+                                    {
+                                        method:
+                                            "POST",
+
+                                        body:
+                                            JSON.stringify({
+                                                chest_id:
+                                                    Number(
+                                                        button
+                                                            .dataset
+                                                            .id
+                                                    )
+                                            })
+                                    }
+                                );
+
+
+                            if (x.data) {
+                                setData(x.data);
+                            }
+
+
+                            toast(
+                                x.message ||
+                                "🎁 Сундук куплен!"
+                            );
+
+
+                            loadChests();
+
+
+                        } catch (e) {
+
+                            toast(
+                                e.message
+                            );
+                        }
+                    };
+            });
+
+
+        document
+            .querySelectorAll(".open-chest-modal")
+            .forEach(button => {
+
+                button.onclick =
+                    () => openChest(
+                        Number(
+                            button.dataset.id
+                        )
+                    );
+            });
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+async function openChest(chestId) {
+
+    try {
+
+        const r =
+            await api(
+                "/api/chests/open",
+                {
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify({
+                            chest_id:
+                                chestId
+                        })
+                }
+            );
+
+
+        if (r.data) {
+
+            setData(
+                r.data
+            );
+        }
+
+
+        /*
+         * Показываем результат открытия.
+         */
+        if (r.reward) {
+
+            if (r.reward.type === "egg") {
+
+                toast(
+                    `🥚 Получено яйцо: ${
+                        r.reward.egg?.name ||
+                        "Яйцо"
+                    }`
+                );
+
+            } else if (
+                r.reward.type === "pet"
+            ) {
+
+                toast(
+                    `🐾 Получен питомец: ${
+                        r.reward.pet?.name ||
+                        "Питомец"
+                    }`
+                );
+
+            } else if (
+                r.reward.type === "coins"
+            ) {
+
+                toast(
+                    `🥚 +${r.reward.amount} Egg Coins`
+                );
+
+            } else if (
+                r.reward.type === "booster"
+            ) {
+
+                toast(
+                    `⚡ Получен предмет: ${
+                        r.reward.item?.name ||
+                        "Бустер"
+                    }`
+                );
+
+            } else if (
+                r.reward.type === "xp"
+            ) {
+
+                toast(
+                    `⭐ +${r.reward.amount} XP`
+                );
+
+            } else {
+
+                toast(
+                    r.message ||
+                    "🎁 Сундук открыт!"
+                );
+            }
+
+        } else {
+
+            toast(
+                r.message ||
+                "🎁 Сундук открыт!"
+            );
+        }
+
+
+        /*
+         * Если мы сейчас на странице яиц —
+         * обновляем магазин.
+         */
+        if (
+            state.eggTab === "chests"
+        ) {
+
+            await loadChestShop();
+
+        } else {
+
+            await loadChests();
+        }
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+if ($("chestsBtn")) {
+
+    $("chestsBtn").onclick =
+        loadChests;
+}
+
+
+/* =========================
    РЫНОК
-========================================================= */
+========================= */
 
 async function loadMarket() {
 
@@ -3178,8 +3130,11 @@ async function loadMarket() {
         `);
 
 
-        $("marketSell").onclick =
-            openMarketSell;
+        if ($("marketSell")) {
+
+            $("marketSell").onclick =
+                openMarketSell;
+        }
 
 
         document
@@ -3230,14 +3185,18 @@ async function openMarketSell() {
         const shop =
             r.shop || {};
 
-
         const owned =
             r.owned || {};
 
 
         const entries =
             Array.isArray(shop)
-                ? shop
+                ? shop.filter(
+                    egg =>
+                        Number(
+                            owned[egg.id] || 0
+                        ) > 0
+                )
                 : Object.entries(shop)
                     .map(([id, egg]) => ({
                         ...egg,
@@ -3407,9 +3366,7 @@ async function openMarketSell() {
 }
 
 
-async function buyMarketListing(
-    listingId
-) {
+async function buyMarketListing(listingId) {
 
     try {
 
@@ -3450,9 +3407,7 @@ async function buyMarketListing(
 }
 
 
-async function cancelMarketListing(
-    listingId
-) {
+async function cancelMarketListing(listingId) {
 
     try {
 
@@ -3500,9 +3455,9 @@ if ($("marketBtn")) {
 }
 
 
-/* =========================================================
+/* =========================
    КРАЖА ЯИЦ
-========================================================= */
+========================= */
 
 async function loadStealPlayers() {
 
@@ -3680,9 +3635,9 @@ if ($("stealBtn")) {
 }
 
 
-/* =========================================================
+/* =========================
    EGG PASS
-========================================================= */
+========================= */
 
 async function loadEggPass() {
 
@@ -3928,9 +3883,9 @@ if ($("eggPassBtn")) {
 }
 
 
-/* =========================================================
-   ВЫБОР АВАТАРА
-========================================================= */
+/* =========================
+   АВАТАР
+========================= */
 
 const DEFAULT_AVATARS = [
     "🥚",
@@ -4056,11 +4011,6 @@ function openAvatarSelector() {
 
                     try {
 
-                        /*
-                         * Используем основной
-                         * серверный endpoint.
-                         */
-
                         const r =
                             await api(
                                 "/api/profile/avatar",
@@ -4082,6 +4032,18 @@ function openAvatarSelector() {
                                 r.data
                             );
 
+                        } else if (r.avatar) {
+
+                            if (!state.data) {
+                                state.data = {};
+                            }
+
+                            state.data.avatar =
+                                r.avatar;
+
+                            setData(
+                                state.data
+                            );
                         }
 
 
@@ -4102,9 +4064,9 @@ function openAvatarSelector() {
 }
 
 
-/* =========================================================
+/* =========================
    КНОПКИ АВАТАРА
-========================================================= */
+========================= */
 
 if ($("avatarButton")) {
 
@@ -4120,9 +4082,9 @@ if ($("changeAvatarBtn")) {
 }
 
 
-/* =========================================================
+/* =========================
    ВЫВОД ЯИЦ
-========================================================= */
+========================= */
 
 async function openWithdrawal() {
 
@@ -4288,10 +4250,8 @@ if ($("profileWithdraw")) {
 }
 
 
-/* =========================================================
+/* =========================
    ЗАПУСК
-========================================================= */
-
-loadEggs();
+========================= */
 
 init();
