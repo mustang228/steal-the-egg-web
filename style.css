@@ -1,64 +1,106 @@
+/* =========================================================
+   STEAL THE EGG — STYLE.CSS
+   Обновлённая версия
+========================================================= */
+
 * {
     box-sizing: border-box;
 }
 
 :root {
     --bg: #09020f;
+    --bg2: #0f0319;
+
     --panel: #160921;
     --panel2: #20102e;
+    --panel3: #281238;
+
     --purple: #8f4dff;
     --purple2: #a65cff;
-    --text: #fff;
+    --purple3: #c084ff;
+
+    --text: #ffffff;
     --muted: #a99ab7;
+
     --border: rgba(255, 255, 255, .08);
+    --border-hover: rgba(166, 92, 255, .35);
+
     --gold: #ffd66b;
+    --green: #65e6a1;
+    --red: #ff557d;
+    --blue: #69b7ff;
+    --cyan: #65e8ff;
+
+    --shadow: 0 10px 35px rgba(0, 0, 0, .28);
 }
+
+
+/* =========================================================
+   ОСНОВА
+========================================================= */
 
 html,
 body {
     margin: 0;
     padding: 0;
 
+    min-height: 100%;
+
     background: var(--bg);
     color: var(--text);
 
-    font-family: Arial, sans-serif;
-
-    min-height: 100%;
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 
     overscroll-behavior: none;
+
+    -webkit-text-size-adjust: 100%;
 }
 
 body {
+    min-height: 100vh;
+
     background:
         radial-gradient(
-            circle at 50% -10%,
-            #3a1264 0,
-            #12051f 35%,
-            #09020f 70%
+            circle at 50% -15%,
+            rgba(89, 26, 145, .75) 0,
+            rgba(38, 10, 65, .7) 22%,
+            rgba(18, 5, 31, .95) 48%,
+            #09020f 78%
         );
 
-    padding-bottom: 80px;
+    background-attachment: fixed;
+
+    padding-bottom: 85px;
 }
 
 
-/* =========================
+/* =========================================================
    ОБЩИЕ ЭЛЕМЕНТЫ
-========================= */
+========================================================= */
+
+button,
+input {
+    font: inherit;
+}
 
 button {
-    font: inherit;
     color: inherit;
 
     border: 0;
+
     cursor: pointer;
 
     -webkit-tap-highlight-color: transparent;
 
     transition:
         transform .12s ease,
-        opacity .12s ease,
-        background .15s ease;
+        opacity .15s ease,
+        background .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease;
 }
 
 button:active {
@@ -69,28 +111,46 @@ button:disabled {
     cursor: default;
 }
 
+button:disabled:active {
+    transform: none;
+}
+
 .hidden {
     display: none !important;
 }
 
+p {
+    line-height: 1.45;
+}
+
+h2,
+h3 {
+    line-height: 1.25;
+}
+
+
+/* =========================================================
+   APP
+========================================================= */
 
 .app {
+    width: 100%;
     max-width: 520px;
 
-    margin: auto;
+    min-height: 100vh;
+
+    margin: 0 auto;
 
     padding:
         14px
         14px
-        90px;
-
-    min-height: 100vh;
+        95px;
 }
 
 
-/* =========================
+/* =========================================================
    ВЕРХНЯЯ ПАНЕЛЬ
-========================= */
+========================================================= */
 
 .topbar {
     display: flex;
@@ -98,14 +158,22 @@ button:disabled {
     justify-content: space-between;
     align-items: center;
 
-    margin: 4px 0 14px;
+    gap: 12px;
+
+    margin:
+        4px
+        0
+        14px;
 }
 
 .brand {
-    font-weight: 900;
     font-size: 20px;
 
+    font-weight: 900;
+
     letter-spacing: .5px;
+
+    white-space: nowrap;
 }
 
 .subbrand {
@@ -113,23 +181,38 @@ button:disabled {
 
     font-size: 12px;
 
-    margin-top: 3px;
+    margin-top: 4px;
+
+    overflow-wrap: anywhere;
 }
 
 .icon-btn,
 .small-btn {
-    background: var(--panel2);
+    flex-shrink: 0;
 
-    border: 1px solid var(--border);
+    background:
+        linear-gradient(
+            145deg,
+            #241132,
+            #180923
+        );
+
+    border:
+        1px solid
+        var(--border);
 
     border-radius: 14px;
 
-    padding: 10px;
+    box-shadow:
+        0 5px 20px
+        rgba(0, 0, 0, .18);
 }
 
 .icon-btn {
     min-width: 44px;
     min-height: 44px;
+
+    padding: 10px;
 
     font-size: 20px;
 }
@@ -138,19 +221,31 @@ button:disabled {
     min-width: 42px;
     min-height: 42px;
 
-    font-size: 22px;
+    padding: 8px;
+
+    font-size: 21px;
+}
+
+.icon-btn:hover,
+.small-btn:hover {
+    background: #2c1640;
+
+    border-color:
+        var(--border-hover);
+
+    transform: translateY(-1px);
 }
 
 
-/* =========================
+/* =========================================================
    БАЛАНСЫ
-========================= */
+========================================================= */
 
 .balances {
     display: grid;
 
     grid-template-columns:
-        1fr 1fr;
+        repeat(2, minmax(0, 1fr));
 
     gap: 10px;
 
@@ -158,18 +253,50 @@ button:disabled {
 }
 
 .balance-card {
+    position: relative;
+
+    overflow: hidden;
+
+    min-width: 0;
+
     background:
         linear-gradient(
             145deg,
-            #1c0a2c,
+            #21102f,
             #110519
         );
 
-    border: 1px solid var(--border);
+    border:
+        1px solid
+        var(--border);
 
     border-radius: 18px;
 
-    padding: 12px;
+    padding: 13px;
+
+    box-shadow:
+        var(--shadow);
+}
+
+.balance-card::after {
+    content: "";
+
+    position: absolute;
+
+    width: 80px;
+    height: 80px;
+
+    right: -30px;
+    bottom: -35px;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(166, 92, 255, .16),
+            transparent 70%
+        );
+
+    pointer-events: none;
 }
 
 .balance-card span {
@@ -183,9 +310,13 @@ button:disabled {
 .balance-card b {
     display: block;
 
+    margin-top: 5px;
+
     font-size: 22px;
 
-    margin-top: 5px;
+    font-weight: 900;
+
+    overflow-wrap: anywhere;
 }
 
 .balance-card.egg b {
@@ -193,16 +324,31 @@ button:disabled {
 }
 
 
-/* =========================
+/* =========================================================
    СТРАНИЦЫ
-========================= */
+========================================================= */
 
 .page {
     display: none;
+
+    animation:
+        pageIn .2s ease;
 }
 
 .page.active {
     display: block;
+}
+
+@keyframes pageIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 h2 {
@@ -215,21 +361,30 @@ h2 {
 }
 
 
-/* =========================
+/* =========================================================
    ТАПАЛКА
-========================= */
+========================================================= */
 
 .tap-card {
     position: relative;
 
+    overflow: hidden;
+
     background:
+        radial-gradient(
+            circle at 50% 25%,
+            rgba(143, 77, 255, .13),
+            transparent 40%
+        ),
         linear-gradient(
             160deg,
-            #241039,
+            #26113c,
             #12051f
         );
 
-    border: 1px solid var(--border);
+    border:
+        1px solid
+        var(--border);
 
     border-radius: 28px;
 
@@ -237,20 +392,56 @@ h2 {
 
     text-align: center;
 
-    overflow: hidden;
+    box-shadow:
+        0 15px 45px
+        rgba(0, 0, 0, .25);
+}
+
+.tap-card::before {
+    content: "";
+
+    position: absolute;
+
+    width: 180px;
+    height: 180px;
+
+    left: 50%;
+    top: 55px;
+
+    transform: translateX(-50%);
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(143, 77, 255, .1),
+            transparent 70%
+        );
+
+    pointer-events: none;
 }
 
 .streak {
+    position: relative;
+
     font-size: 13px;
 
     color: #ffc85a;
 
     margin-bottom: 5px;
+
+    font-weight: 700;
 }
 
 .egg-button {
+    position: relative;
+    z-index: 2;
+
+    display: block;
+
     width: 230px;
     height: 230px;
+
+    margin: 10px auto;
 
     border-radius: 50%;
 
@@ -258,32 +449,57 @@ h2 {
 
     background:
         radial-gradient(
-            circle,
-            #5f2a91 0,
-            #2c0e47 55%,
-            #15051f 70%
+            circle at 35% 30%,
+            #7842ae 0,
+            #5a2587 25%,
+            #2c0e47 58%,
+            #15051f 72%
         );
 
     box-shadow:
-        0 0 45px rgba(
+        0 0 45px
+        rgba(
             151,
             75,
             255,
-            .28
+            .30
         ),
-        inset 0 0 40px rgba(
+        0 0 100px
+        rgba(
+            112,
+            45,
+            190,
+            .08
+        ),
+        inset 0 0 40px
+        rgba(
             255,
             255,
             255,
-            .05
+            .06
         );
 
-    margin: 10px auto;
-
-    display: block;
-
     transition:
-        transform .08s ease;
+        transform .08s ease,
+        box-shadow .15s ease;
+}
+
+.egg-button:hover {
+    box-shadow:
+        0 0 55px
+        rgba(
+            151,
+            75,
+            255,
+            .38
+        ),
+        inset 0 0 40px
+        rgba(
+            255,
+            255,
+            255,
+            .07
+        );
 }
 
 .egg-button:active {
@@ -291,6 +507,8 @@ h2 {
 }
 
 .tap-hint {
+    position: relative;
+
     font-size: 12px;
 
     letter-spacing: 2px;
@@ -306,7 +524,7 @@ h2 {
 .primary {
     width: 100%;
 
-    padding: 13px;
+    padding: 13px 15px;
 
     border-radius: 15px;
 
@@ -325,24 +543,33 @@ h2 {
             120,
             50,
             220,
-            .15
+            .18
         );
 }
 
 .primary:hover {
-    opacity: .92;
+    opacity: .94;
+
+    box-shadow:
+        0 7px 25px
+        rgba(
+            120,
+            50,
+            220,
+            .28
+        );
 }
 
 
-/* =========================
+/* =========================================================
    TAP FLOATERS
-========================= */
+========================================================= */
 
 .quick-grid {
     display: grid;
 
     grid-template-columns:
-        1fr 1fr;
+        repeat(2, minmax(0, 1fr));
 
     gap: 10px;
 
@@ -350,25 +577,36 @@ h2 {
 }
 
 .feature {
-    background: var(--panel);
+    background:
+        linear-gradient(
+            145deg,
+            #1b0b29,
+            #13071e
+        );
 
-    border: 1px solid var(--border);
+    border:
+        1px solid
+        var(--border);
 
     border-radius: 18px;
 
     padding: 17px;
 
     font-size: 28px;
+
+    box-shadow:
+        0 7px 25px
+        rgba(0, 0, 0, .15);
 }
 
 .feature span {
     display: block;
 
-    font-size: 13px;
+    margin-top: 6px;
 
     color: var(--muted);
 
-    margin-top: 6px;
+    font-size: 13px;
 }
 
 .floaters {
@@ -380,11 +618,17 @@ h2 {
 }
 
 .floater {
-    position: absolute;
+    position: fixed;
+
+    z-index: 80;
 
     font-weight: 900;
 
     color: #fff;
+
+    text-shadow:
+        0 0 12px
+        rgba(166, 92, 255, .7);
 
     animation:
         float 800ms ease-out forwards;
@@ -393,22 +637,27 @@ h2 {
 }
 
 @keyframes float {
-
     from {
-        transform: translateY(0);
+        transform:
+            translateY(0)
+            scale(1);
+
         opacity: 1;
     }
 
     to {
-        transform: translateY(-70px);
+        transform:
+            translateY(-70px)
+            scale(1.08);
+
         opacity: 0;
     }
 }
 
 
-/* =========================
+/* =========================================================
    ИГРЫ
-========================= */
+========================================================= */
 
 .game-list {
     display: grid;
@@ -419,19 +668,35 @@ h2 {
 .game-card {
     width: 100%;
 
-    background: var(--panel);
+    background:
+        linear-gradient(
+            145deg,
+            #1b0b29,
+            #13071e
+        );
 
-    border: 1px solid var(--border);
+    border:
+        1px solid
+        var(--border);
 
     border-radius: 17px;
 
     padding: 15px;
 
     text-align: left;
+
+    box-shadow:
+        0 7px 25px
+        rgba(0, 0, 0, .12);
 }
 
 .game-card:hover {
-    background: #1b0b29;
+    background: #21102f;
+
+    border-color:
+        var(--border-hover);
+
+    transform: translateY(-1px);
 }
 
 .game-card b {
@@ -446,58 +711,82 @@ h2 {
     color: var(--muted);
 
     margin-top: 5px;
+
+    line-height: 1.4;
 }
 
 .game-area {
     margin-top: 12px;
 
-    background: var(--panel2);
+    padding: 17px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #241331,
+            #190a24
+        );
 
     border-radius: 18px;
 
-    padding: 15px;
-
     text-align: center;
 
-    border: 1px solid var(--border);
+    border:
+        1px solid
+        var(--border);
+
+    box-shadow:
+        0 10px 30px
+        rgba(0, 0, 0, .18);
 }
 
 .game-area h3 {
-    margin-top: 4px;
+    margin:
+        4px
+        0
+        10px;
 }
 
 
-/* =========================
+/* =========================================================
    INPUT
-========================= */
+========================================================= */
 
 .input {
     width: 100%;
 
     padding: 13px;
 
-    border-radius: 13px;
-
-    background: #0c0413;
-
-    border: 1px solid var(--border);
-
-    color: #fff;
-
     margin:
         8px
         0;
 
+    border-radius: 13px;
+
+    background:
+        #0c0413;
+
+    border:
+        1px solid
+        var(--border);
+
+    color: #fff;
+
     outline: none;
+
+    transition:
+        border-color .15s ease,
+        box-shadow .15s ease;
 }
 
 .input:focus {
-    border-color: rgba(
-        143,
-        77,
-        255,
-        .6
-    );
+    border-color:
+        rgba(
+            143,
+            77,
+            255,
+            .7
+        );
 
     box-shadow:
         0 0 0 3px
@@ -513,10 +802,21 @@ h2 {
     color: #75677f;
 }
 
+input[type="number"] {
+    appearance: textfield;
+}
 
-/* =========================
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    appearance: none;
+
+    margin: 0;
+}
+
+
+/* =========================================================
    ЯЙЦА
-========================= */
+========================================================= */
 
 .section-head {
     display: flex;
@@ -524,6 +824,8 @@ h2 {
     justify-content: space-between;
 
     align-items: center;
+
+    gap: 10px;
 }
 
 .tabs {
@@ -537,7 +839,8 @@ h2 {
 .tab {
     flex: 1;
 
-    background: var(--panel);
+    background:
+        var(--panel);
 
     padding: 11px;
 
@@ -545,25 +848,78 @@ h2 {
 
     color: var(--muted);
 
-    border: 1px solid var(--border);
+    border:
+        1px solid
+        var(--border);
+
+    font-weight: 700;
+}
+
+.tab:hover {
+    background: #21102f;
 }
 
 .tab.active {
-    background: #6730a3;
+    background:
+        linear-gradient(
+            135deg,
+            #6730a3,
+            #7d3dcc
+        );
 
     color: #fff;
+
+    border-color:
+        rgba(
+            166,
+            92,
+            255,
+            .35
+        );
+
+    box-shadow:
+        0 5px 20px
+        rgba(
+            103,
+            48,
+            163,
+            .2
+        );
 }
 
 .egg-item {
-    background: var(--panel);
+    position: relative;
 
-    border: 1px solid var(--border);
+    background:
+        linear-gradient(
+            145deg,
+            #1b0b29,
+            #13071e
+        );
+
+    border:
+        1px solid
+        var(--border);
 
     border-radius: 17px;
 
     padding: 14px;
 
     margin-bottom: 9px;
+
+    box-shadow:
+        0 7px 22px
+        rgba(0, 0, 0, .12);
+}
+
+.egg-item:hover {
+    border-color:
+        rgba(
+            166,
+            92,
+            255,
+            .22
+        );
 }
 
 .egg-top {
@@ -580,6 +936,8 @@ h2 {
     font-weight: 800;
 
     font-size: 15px;
+
+    overflow-wrap: anywhere;
 }
 
 .rarity {
@@ -588,6 +946,8 @@ h2 {
     color: var(--muted);
 
     margin-top: 4px;
+
+    line-height: 1.4;
 }
 
 .price {
@@ -599,7 +959,12 @@ h2 {
 }
 
 .action {
-    background: #6d35d5;
+    background:
+        linear-gradient(
+            135deg,
+            #6d35d5,
+            #813ee6
+        );
 
     padding:
         9px
@@ -610,33 +975,69 @@ h2 {
     margin-top: 10px;
 
     font-weight: 700;
+
+    box-shadow:
+        0 4px 14px
+        rgba(
+            109,
+            53,
+            213,
+            .15
+        );
 }
 
 .action:hover {
-    background: #7d42e8;
+    background:
+        linear-gradient(
+            135deg,
+            #7d42e8,
+            #9650f2
+        );
+
+    box-shadow:
+        0 5px 18px
+        rgba(
+            125,
+            66,
+            232,
+            .22
+        );
 }
 
 .action:disabled {
     opacity: .45;
 
     cursor: not-allowed;
+
+    box-shadow: none;
 }
 
 
-/* =========================
+/* =========================================================
    ПРОГРЕСС / XP
-========================= */
+========================================================= */
 
 .level-card {
-    background: var(--panel);
+    background:
+        linear-gradient(
+            145deg,
+            #1b0b29,
+            #13071e
+        );
 
-    border: 1px solid var(--border);
+    border:
+        1px solid
+        var(--border);
 
     border-radius: 18px;
 
     padding: 15px;
 
     margin-bottom: 12px;
+
+    box-shadow:
+        0 8px 25px
+        rgba(0, 0, 0, .14);
 }
 
 .level-line {
@@ -652,13 +1053,23 @@ h2 {
 .progress {
     height: 9px;
 
-    background: #0c0413;
+    background:
+        #0c0413;
 
     border-radius: 20px;
 
     overflow: hidden;
 
     margin-top: 10px;
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .03
+        );
 }
 
 .progress div {
@@ -673,14 +1084,16 @@ h2 {
             #c084ff
         );
 
+    border-radius: inherit;
+
     transition:
         width .3s ease;
 }
 
 
-/* =========================
+/* =========================================================
    МЕНЮ
-========================= */
+========================================================= */
 
 .menu-list {
     display: grid;
@@ -691,9 +1104,16 @@ h2 {
 .menu-row {
     width: 100%;
 
-    background: var(--panel);
+    background:
+        linear-gradient(
+            145deg,
+            #1b0b29,
+            #13071e
+        );
 
-    border: 1px solid var(--border);
+    border:
+        1px solid
+        var(--border);
 
     border-radius: 17px;
 
@@ -706,41 +1126,60 @@ h2 {
     justify-content: space-between;
 
     align-items: center;
+
+    gap: 10px;
+
+    box-shadow:
+        0 7px 22px
+        rgba(0, 0, 0, .12);
 }
 
 .menu-row:hover {
-    background: #1b0b29;
+    background: #21102f;
+
+    border-color:
+        var(--border-hover);
+
+    transform: translateY(-1px);
 }
 
 .menu-row span {
+    flex-shrink: 0;
+
     color: var(--muted);
 
     font-size: 22px;
 }
 
 
-/* =========================
+/* =========================================================
    ПРОФИЛЬ
-========================= */
+========================================================= */
 
 .profile-card {
     text-align: center;
 
-    background: var(--panel);
+    background:
+        linear-gradient(
+            145deg,
+            #1b0b29,
+            #13071e
+        );
 
     border-radius: 22px;
 
     padding: 18px;
 
-    border: 1px solid var(--border);
+    border:
+        1px solid
+        var(--border);
 
     margin-bottom: 12px;
+
+    box-shadow:
+        0 10px 35px
+        rgba(0, 0, 0, .2);
 }
-
-
-/*
-   КНОПКА АВАТАРА
-*/
 
 .avatar {
     width: 105px;
@@ -785,10 +1224,23 @@ h2 {
             255,
             .18
         );
+
+    transition:
+        transform .15s ease,
+        box-shadow .15s ease;
 }
 
 .avatar:hover {
     transform: scale(1.04);
+
+    box-shadow:
+        0 0 40px
+        rgba(
+            143,
+            77,
+            255,
+            .28
+        );
 }
 
 .profile-card h3 {
@@ -815,7 +1267,7 @@ h2 {
     display: grid;
 
     grid-template-columns:
-        1fr 1fr;
+        repeat(2, minmax(0, 1fr));
 
     gap: 8px;
 
@@ -823,11 +1275,26 @@ h2 {
 }
 
 .stats div {
-    background: var(--panel2);
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            .035
+        );
 
     padding: 11px;
 
     border-radius: 13px;
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .04
+        );
 }
 
 .stats b {
@@ -843,15 +1310,15 @@ h2 {
 }
 
 
-/* =========================
-   ВЫБОР АВАТАРА
-========================= */
+/* =========================================================
+   АВАТАРЫ
+========================================================= */
 
 .avatar-grid {
     display: grid;
 
     grid-template-columns:
-        repeat(5, 1fr);
+        repeat(5, minmax(0, 1fr));
 
     gap: 10px;
 
@@ -872,17 +1339,31 @@ h2 {
 
     border-radius: 14px;
 
-    background: var(--panel2);
+    background:
+        var(--panel2);
 
     border:
         1px solid
         var(--border);
 
     font-size: 32px;
+
+    transition:
+        transform .12s ease,
+        background .15s ease,
+        border-color .15s ease;
 }
 
 .avatar-choice:hover {
     background: #2c1640;
+
+    border-color:
+        rgba(
+            166,
+            92,
+            255,
+            .4
+        );
 
     transform: scale(1.04);
 }
@@ -892,15 +1373,15 @@ h2 {
 }
 
 
-/* =========================
+/* =========================================================
    КРЕСТИКИ-НОЛИКИ
-========================= */
+========================================================= */
 
 .tic {
     display: grid;
 
     grid-template-columns:
-        repeat(3, 1fr);
+        repeat(3, minmax(0, 1fr));
 
     gap: 7px;
 
@@ -914,7 +1395,8 @@ h2 {
 
     border-radius: 13px;
 
-    background: #0e0515;
+    background:
+        #0e0515;
 
     font-size: 30px;
 
@@ -930,6 +1412,14 @@ h2 {
 
 .tic button:hover:not(:disabled) {
     background: #1c0c29;
+
+    border-color:
+        rgba(
+            166,
+            92,
+            255,
+            .35
+        );
 }
 
 .tic button:disabled {
@@ -939,9 +1429,9 @@ h2 {
 }
 
 
-/* =========================
+/* =========================================================
    ЛИДЕРБОРД
-========================= */
+========================================================= */
 
 .leader {
     display: flex;
@@ -954,13 +1444,20 @@ h2 {
 
     padding: 12px;
 
-    background: var(--panel);
+    background:
+        linear-gradient(
+            145deg,
+            #1b0b29,
+            #13071e
+        );
 
     border-radius: 14px;
 
     margin-bottom: 7px;
 
-    border: 1px solid var(--border);
+    border:
+        1px solid
+        var(--border);
 }
 
 .leader > div {
@@ -982,9 +1479,9 @@ h2 {
 }
 
 
-/* =========================
+/* =========================================================
    BOSS
-========================= */
+========================================================= */
 
 .boss-hp {
     font-size: 28px;
@@ -996,6 +1493,15 @@ h2 {
     margin:
         10px
         0;
+
+    text-shadow:
+        0 0 15px
+        rgba(
+            255,
+            63,
+            108,
+            .15
+        );
 }
 
 .boss-name {
@@ -1009,7 +1515,8 @@ h2 {
 .boss-bar {
     height: 18px;
 
-    background: #0b0410;
+    background:
+        #0b0410;
 
     border-radius: 20px;
 
@@ -1018,6 +1525,15 @@ h2 {
     margin:
         12px
         0;
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .04
+        );
 }
 
 .boss-bar div {
@@ -1030,17 +1546,35 @@ h2 {
             #a33cff
         );
 
+    border-radius: inherit;
+
     transition:
         width .2s ease;
+
+    box-shadow:
+        0 0 15px
+        rgba(
+            255,
+            63,
+            108,
+            .25
+        );
 }
 
 
-/* =========================
-   ПРЕДМЕТЫ
-========================= */
+/* =========================================================
+   КАРТОЧКИ ПРЕДМЕТОВ
+========================================================= */
 
 .item-card {
-    background: var(--panel);
+    position: relative;
+
+    background:
+        linear-gradient(
+            145deg,
+            #1b0b29,
+            #13071e
+        );
 
     border:
         1px solid
@@ -1051,6 +1585,42 @@ h2 {
     padding: 14px;
 
     margin-bottom: 9px;
+
+    box-shadow:
+        0 7px 22px
+        rgba(
+            0,
+            0,
+            0,
+            .12
+        );
+}
+
+.item-card:hover {
+    border-color:
+        rgba(
+            166,
+            92,
+            255,
+            .2
+        );
+}
+
+.item-card h3 {
+    margin:
+        2px
+        0
+        10px;
+}
+
+.item-card p {
+    margin:
+        8px
+        0;
+
+    color: var(--muted);
+
+    font-size: 13px;
 }
 
 .item-top {
@@ -1065,15 +1635,22 @@ h2 {
 
 .item-top b {
     font-size: 15px;
+
+    overflow-wrap: anywhere;
 }
 
 
-/* =========================
+/* =========================================================
    ДОСТИЖЕНИЯ
-========================= */
+========================================================= */
 
 .achievement {
-    background: var(--panel);
+    background:
+        linear-gradient(
+            145deg,
+            #1b0b29,
+            #13071e
+        );
 
     border:
         1px solid
@@ -1084,15 +1661,30 @@ h2 {
     padding: 14px;
 
     margin-bottom: 9px;
+
+    box-shadow:
+        0 7px 22px
+        rgba(0, 0, 0, .12);
+}
+
+.achievement b {
+    display: block;
+
+    line-height: 1.4;
 }
 
 
-/* =========================
+/* =========================================================
    ЗАДАНИЯ
-========================= */
+========================================================= */
 
 .task {
-    background: var(--panel);
+    background:
+        linear-gradient(
+            145deg,
+            #1b0b29,
+            #13071e
+        );
 
     border:
         1px solid
@@ -1109,99 +1701,178 @@ h2 {
     color: var(--muted);
 
     font-size: 12px;
+
+    margin-bottom: 4px;
 }
 
 
-/* =========================
-   НИЖНЯЯ НАВИГАЦИЯ
-========================= */
+/* =========================================================
+   НОВЫЕ СИСТЕМЫ
+========================================================= */
 
-.bottom-nav {
-    position: fixed;
+/*
+   ПИТОМЦЫ
+   СУНДУКИ
+   РЫНОК
+   STEAL
+   EGG PASS
 
-    z-index: 20;
+   Они используют .item-card,
+   поэтому автоматически получают
+   основное оформление.
 
-    bottom: 0;
+   Ниже дополнительные стили.
+*/
 
-    left: 50%;
 
-    transform: translateX(-50%);
+/* Активный питомец */
 
-    width: min(
-        520px,
-        100%
-    );
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(5, 1fr);
-
-    background:
-        rgba(
-            12,
-            4,
-            19,
-            .95
-        );
-
-    backdrop-filter:
-        blur(14px);
-
-    border-top:
-        1px solid
-        var(--border);
-
-    padding:
-        7px
-        5px
-        calc(
-            7px +
-            env(
-                safe-area-inset-bottom
-            )
-        );
-}
-
-.bottom-nav button {
-    background: none;
-
-    color: var(--muted);
-
-    font-size: 20px;
-
-    padding: 5px;
-}
-
-.bottom-nav button span {
-    display: block;
-
-    font-size: 9px;
-
-    margin-top: 2px;
-}
-
-.bottom-nav button.active {
+.item-card h3:first-child {
     color: #fff;
 }
 
 
-/* =========================
-   MODAL
-========================= */
+/* Редкости */
+
+.item-card .rarity {
+    line-height: 1.45;
+}
+
+
+/* Кнопки нескольких действий */
+
+.item-card .action + .action {
+    margin-left: 6px;
+}
+
+
+/* Кнопка покупки */
+
+.buy-item,
+.buy-chest,
+.buy-listing {
+    background:
+        linear-gradient(
+            135deg,
+            #7540df,
+            #a04ff5
+        );
+}
+
+
+/* Активация */
+
+.activate-item,
+.activate-pet {
+    background:
+        linear-gradient(
+            135deg,
+            #3e9d78,
+            #52c998
+        );
+}
+
+.activate-item:hover,
+.activate-pet:hover {
+    background:
+        linear-gradient(
+            135deg,
+            #48b58b,
+            #61d9a8
+        );
+}
+
+
+/* Кража */
+
+.steal-player {
+    background:
+        linear-gradient(
+            135deg,
+            #8c2e68,
+            #bd3b79
+        );
+}
+
+.steal-player:hover {
+    background:
+        linear-gradient(
+            135deg,
+            #a43579,
+            #cf4587
+        );
+}
+
+
+/* Продажа */
+
+.sell-egg {
+    background:
+        linear-gradient(
+            135deg,
+            #287eab,
+            #3ca9df
+        );
+}
+
+
+/* Отмена */
+
+.cancel-listing {
+    background:
+        linear-gradient(
+            135deg,
+            #8d3048,
+            #b9405d
+        );
+}
+
+
+/* Egg Pass */
+
+.claim-pass {
+    background:
+        linear-gradient(
+            135deg,
+            #8052e8,
+            #bd70ff
+        );
+}
+
+
+/* =========================================================
+   EGG PASS — ДОПОЛНИТЕЛЬНО
+========================================================= */
+
+.item-card:has(.claim-pass) {
+    border-color:
+        rgba(
+            166,
+            92,
+            255,
+            .16
+        );
+}
+
+.item-card:has(.claim-pass):hover {
+    border-color:
+        rgba(
+            166,
+            92,
+            255,
+            .35
+        );
+}
+
+
+/* =========================================================
+   МОДАЛЬНОЕ ОКНО
+========================================================= */
 
 .modal {
     position: fixed;
 
     inset: 0;
-
-    background:
-        rgba(
-            0,
-            0,
-            0,
-            .72
-        );
 
     z-index: 50;
 
@@ -1210,6 +1881,33 @@ h2 {
     align-items: flex-end;
 
     justify-content: center;
+
+    background:
+        rgba(
+            0,
+            0,
+            0,
+            .74
+        );
+
+    backdrop-filter:
+        blur(5px);
+
+    -webkit-backdrop-filter:
+        blur(5px);
+
+    animation:
+        modalBg .18s ease;
+}
+
+@keyframes modalBg {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .modal-box {
@@ -1222,9 +1920,24 @@ h2 {
 
     max-height: 88vh;
 
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
 
-    background: #13071d;
+    background:
+        linear-gradient(
+            160deg,
+            #1b0a29,
+            #100418
+        );
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .08
+        );
 
     border-radius:
         24px
@@ -1235,16 +1948,75 @@ h2 {
     padding:
         22px
         15px
-        25px;
+        28px;
+
+    box-shadow:
+        0 -10px 50px
+        rgba(
+            0,
+            0,
+            0,
+            .45
+        );
+
+    animation:
+        modalUp .2s ease;
+}
+
+@keyframes modalUp {
+    from {
+        transform:
+            translateY(30px);
+
+        opacity: .7;
+    }
+
+    to {
+        transform:
+            translateY(0);
+
+        opacity: 1;
+    }
+}
+
+.modal-box h2 {
+    padding-right: 40px;
+}
+
+.modal-box h3 {
+    margin-top: 18px;
+}
+
+.modal-box::-webkit-scrollbar {
+    width: 5px;
+}
+
+.modal-box::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-box::-webkit-scrollbar-thumb {
+    background:
+        rgba(
+            166,
+            92,
+            255,
+            .3
+        );
+
+    border-radius: 10px;
 }
 
 .modal-close {
     position: absolute;
 
+    z-index: 2;
+
     right: 13px;
     top: 8px;
 
-    background: #281334;
+    background:
+        #281334;
 
     border-radius: 50%;
 
@@ -1257,13 +2029,16 @@ h2 {
 }
 
 .modal-close:hover {
-    background: #382044;
+    background:
+        #382044;
+
+    transform: rotate(5deg);
 }
 
 
-/* =========================
+/* =========================================================
    TOAST
-========================= */
+========================================================= */
 
 .toast {
     position: fixed;
@@ -1274,14 +2049,23 @@ h2 {
 
     bottom: 95px;
 
-    transform:
-        translateX(-50%);
-
-    background: #2a1735;
+    max-width: 90%;
 
     padding:
         11px
         15px;
+
+    transform:
+        translateX(-50%)
+        translateY(5px);
+
+    background:
+        rgba(
+            42,
+            23,
+            53,
+            .96
+        );
 
     border-radius: 13px;
 
@@ -1297,11 +2081,24 @@ h2 {
         opacity .2s ease,
         transform .2s ease;
 
-    max-width: 90%;
-
     text-align: center;
 
     font-size: 14px;
+
+    box-shadow:
+        0 10px 30px
+        rgba(
+            0,
+            0,
+            0,
+            .35
+        );
+
+    backdrop-filter:
+        blur(10px);
+
+    -webkit-backdrop-filter:
+        blur(10px);
 }
 
 .toast.show {
@@ -1313,15 +2110,197 @@ h2 {
 }
 
 
-/* =========================
+/* =========================================================
+   НИЖНЯЯ НАВИГАЦИЯ
+========================================================= */
+
+.bottom-nav {
+    position: fixed;
+
+    z-index: 20;
+
+    bottom: 0;
+
+    left: 50%;
+
+    width: min(
+        520px,
+        100%
+    );
+
+    transform:
+        translateX(-50%);
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, 1fr);
+
+    background:
+        rgba(
+            12,
+            4,
+            19,
+            .94
+        );
+
+    backdrop-filter:
+        blur(16px);
+
+    -webkit-backdrop-filter:
+        blur(16px);
+
+    border-top:
+        1px solid
+        var(--border);
+
+    padding:
+        7px
+        5px
+        calc(
+            7px +
+            env(
+                safe-area-inset-bottom
+            )
+        );
+
+    box-shadow:
+        0 -8px 30px
+        rgba(
+            0,
+            0,
+            0,
+            .25
+        );
+}
+
+.bottom-nav button {
+    position: relative;
+
+    background: none;
+
+    color: var(--muted);
+
+    font-size: 20px;
+
+    padding:
+        5px;
+
+    border-radius: 12px;
+}
+
+.bottom-nav button span {
+    display: block;
+
+    font-size: 9px;
+
+    margin-top: 2px;
+}
+
+.bottom-nav button:hover {
+    color: #fff;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            .035
+        );
+}
+
+.bottom-nav button.active {
+    color: #fff;
+}
+
+.bottom-nav button.active::before {
+    content: "";
+
+    position: absolute;
+
+    top: -7px;
+
+    left: 50%;
+
+    width: 24px;
+    height: 3px;
+
+    transform:
+        translateX(-50%);
+
+    border-radius: 5px;
+
+    background:
+        var(--purple2);
+
+    box-shadow:
+        0 0 12px
+        rgba(
+            166,
+            92,
+            255,
+            .7
+        );
+}
+
+
+/* =========================================================
+   ПОДСКАЗКИ / ПУСТЫЕ СОСТОЯНИЯ
+========================================================= */
+
+.game-area p,
+.modal-box > p {
+    color: var(--muted);
+}
+
+.game-area b,
+.modal-box b {
+    color: #fff;
+}
+
+
+/* =========================================================
+   HOVER — ДЕСКТОП
+========================================================= */
+
+@media (hover: hover) {
+
+    .egg-item,
+    .item-card,
+    .achievement,
+    .task,
+    .leader,
+    .level-card,
+    .feature {
+        transition:
+            border-color .18s ease,
+            transform .18s ease,
+            background .18s ease;
+    }
+
+    .egg-item:hover,
+    .item-card:hover,
+    .achievement:hover,
+    .task:hover {
+        transform:
+            translateY(-1px);
+    }
+}
+
+
+/* =========================================================
    МОБИЛЬНЫЕ ЭКРАНЫ
-========================= */
+========================================================= */
 
 @media (max-width: 380px) {
 
     .app {
         padding-left: 10px;
         padding-right: 10px;
+    }
+
+    .brand {
+        font-size: 18px;
     }
 
     .egg-button {
@@ -1351,12 +2330,82 @@ h2 {
 
         font-size: 26px;
     }
+
+    .item-card .action + .action {
+        margin-left: 0;
+
+        margin-top: 7px;
+    }
+
+    .egg-top,
+    .item-top {
+        align-items: flex-start;
+    }
+
+    .price {
+        font-size: 13px;
+    }
+
+    .modal-box {
+        padding:
+            20px
+            12px
+            25px;
+    }
 }
 
 
-/* =========================
+/* =========================================================
+   ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ
+========================================================= */
+
+@media (max-width: 320px) {
+
+    .app {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .balances {
+        gap: 7px;
+    }
+
+    .balance-card {
+        padding: 10px;
+    }
+
+    .balance-card b {
+        font-size: 19px;
+    }
+
+    .quick-grid {
+        gap: 7px;
+    }
+
+    .feature {
+        padding: 13px;
+    }
+
+    .egg-button {
+        width: 180px;
+        height: 180px;
+
+        font-size: 100px;
+    }
+
+    .bottom-nav button {
+        font-size: 18px;
+    }
+
+    .bottom-nav button span {
+        font-size: 8px;
+    }
+}
+
+
+/* =========================================================
    АНИМАЦИИ
-========================= */
+========================================================= */
 
 @keyframes pulse {
 
@@ -1376,4 +2425,41 @@ h2 {
 .egg-button:hover {
     animation:
         pulse 1s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+button:focus-visible,
+input:focus-visible {
+    outline:
+        2px solid
+        rgba(
+            166,
+            92,
+            255,
+            .7
+        );
+
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   TELEGRAM / SAFE AREA
+========================================================= */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+
+    body {
+        padding-bottom:
+            calc(
+                85px +
+                env(
+                    safe-area-inset-bottom
+                )
+            );
+    }
 }
