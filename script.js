@@ -2054,7 +2054,7 @@ async function loadBoss() {
 
                     toast(
                         x.defeated
-                            ? "🎉 Босс побеждён! +100 Egg Coins"
+                            ? "🎉 Босс побеждён!"
                             : `⚔️ -${x.damage} HP`
                     );
 
@@ -2322,6 +2322,1391 @@ if ($("profileItems")) {
 
     $("profileItems").onclick =
         loadItems;
+}
+
+
+/* =========================================================
+   НОВОЕ — ПИТОМЦЫ
+========================================================= */
+
+async function loadPets() {
+
+    try {
+
+        const r =
+            await api(
+                "/api/pets"
+            );
+
+
+        const pets =
+            r.pets ||
+            r.items ||
+            [];
+
+
+        const owned =
+            r.owned ||
+            r.player_pets ||
+            r.my_pets ||
+            [];
+
+
+        const active =
+            r.active_pet ||
+            null;
+
+
+        openModal(`
+
+            <h2>
+                🐾 Питомцы
+            </h2>
+
+            ${
+                active
+                    ? `
+
+                        <div class="item-card">
+
+                            <h3>
+                                ⭐ Активный питомец
+                            </h3>
+
+                            <b>
+                                🐾 ${esc(
+                                    active.name ||
+                                    "Питомец"
+                                )}
+                            </b>
+
+                            <p>
+                                Редкость:
+                                ${esc(
+                                    active.rarity ||
+                                    "—"
+                                )}
+                            </p>
+
+                            <p>
+                                Бонус:
+                                +${active.bonus_value || 0}
+                            </p>
+
+                        </div>
+
+                    `
+                    : `
+
+                        <div class="item-card">
+
+                            🐾 Активного питомца нет.
+
+                        </div>
+
+                    `
+            }
+
+
+            <h3>
+                🎒 Мои питомцы
+            </h3>
+
+
+            ${
+                owned.length
+                    ? owned.map(p => `
+
+                        <div class="item-card">
+
+                            <div class="item-top">
+
+                                <b>
+                                    🐾 ${esc(
+                                        p.name ||
+                                        "Питомец"
+                                    )}
+                                </b>
+
+                                <span>
+                                    ${esc(
+                                        p.rarity ||
+                                        ""
+                                    )}
+                                </span>
+
+                            </div>
+
+                            <p>
+
+                                ${esc(
+                                    p.bonus_type ||
+                                    "Бонус"
+                                )}
+
+                               :
+                                +${p.bonus_value || 0}
+
+                            </p>
+
+
+                            <button
+                                class="action activate-pet"
+                                data-id="${
+                                    p.pet_id ??
+                                    p.id
+                                }"
+                                type="button"
+                                ${
+                                    p.active
+                                        ? "disabled"
+                                        : ""
+                                }
+                            >
+
+                                ${
+                                    p.active
+                                        ? "✅ Активен"
+                                        : "⚡ Активировать"
+                                }
+
+                            </button>
+
+                        </div>
+
+                    `).join("")
+                    : `
+
+                        <div class="item-card">
+
+                            🎒 У тебя пока нет питомцев.
+
+                        </div>
+
+                    `
+            }
+
+
+            <h3>
+                📖 Все питомцы
+            </h3>
+
+
+            ${
+                pets.length
+                    ? pets.map(p => `
+
+                        <div class="item-card">
+
+                            <div class="item-top">
+
+                                <b>
+                                    🐾 ${esc(
+                                        p.name ||
+                                        "Питомец"
+                                    )}
+                                </b>
+
+                                <span>
+                                    ${esc(
+                                        p.rarity ||
+                                        ""
+                                    )}
+                                </span>
+
+                            </div>
+
+                            <p>
+
+                                ${esc(
+                                    p.bonus_type ||
+                                    "Бонус"
+                                )}
+
+                               :
+                                +${p.bonus_value || 0}
+
+                            </p>
+
+                        </div>
+
+                    `).join("")
+                    : ""
+            }
+
+        `);
+
+
+        document
+            .querySelectorAll(".activate-pet")
+            .forEach(button => {
+
+                button.onclick =
+                    async () => {
+
+                        try {
+
+                            const x =
+                                await api(
+                                    "/api/pets/activate",
+                                    {
+                                        method:
+                                            "POST",
+
+                                        body:
+                                            JSON.stringify({
+                                                pet_id:
+                                                    Number(
+                                                        button
+                                                            .dataset
+                                                            .id
+                                                    )
+                                            })
+                                    }
+                                );
+
+
+                            toast(
+                                x.message ||
+                                "🐾 Питомец активирован"
+                            );
+
+
+                            loadPets();
+
+
+                        } catch (e) {
+
+                            toast(
+                                e.message
+                            );
+                        }
+                    };
+            });
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+if ($("petsBtn")) {
+
+    $("petsBtn").onclick =
+        loadPets;
+}
+
+
+if ($("profilePets")) {
+
+    $("profilePets").onclick =
+        loadPets;
+}
+
+
+/* =========================================================
+   НОВОЕ — СУНДУКИ
+========================================================= */
+
+async function loadChests() {
+
+    try {
+
+        const r =
+            await api(
+                "/api/chests"
+            );
+
+
+        const chests =
+            r.chests ||
+            r.items ||
+            [];
+
+
+        const entries =
+            Array.isArray(chests)
+                ? chests
+                : Object.entries(chests)
+                    .map(([id, chest]) => ({
+                        ...chest,
+                        id:
+                            chest.id ??
+                            chest.chest_id ??
+                            id
+                    }));
+
+
+        openModal(`
+
+            <h2>
+                🎁 Сундуки
+            </h2>
+
+            <p>
+                Открывай сундуки и получай
+                яйца, питомцев, предметы или монеты.
+            </p>
+
+            ${
+                entries.length
+                    ? entries.map(chest => `
+
+                        <div class="item-card">
+
+                            <div class="item-top">
+
+                                <b>
+                                    🎁 ${esc(
+                                        chest.name ||
+                                        chest.chest_name ||
+                                        `Сундук #${chest.id}`
+                                    )}
+                                </b>
+
+                                <span class="price">
+
+                                    ${
+                                        Number(
+                                            chest.price || 0
+                                        ).toLocaleString()
+                                    }
+
+                                    🥚
+
+                                </span>
+
+                            </div>
+
+                            <p>
+
+                                📦 У тебя:
+                                ${
+                                    chest.count ??
+                                    chest.owned ??
+                                    0
+                                }
+
+                            </p>
+
+
+                            ${
+                                Number(
+                                    chest.count ??
+                                    chest.owned ??
+                                    0
+                                ) > 0
+                                    ? `
+                                        <button
+                                            class="action open-chest"
+                                            data-id="${chest.id}"
+                                            type="button">
+
+                                            🎁 Открыть
+
+                                        </button>
+                                    `
+                                    : chest.price
+                                        ? `
+                                            <button
+                                                class="action buy-chest"
+                                                data-id="${chest.id}"
+                                                type="button">
+
+                                                Купить
+
+                                            </button>
+                                        `
+                                        : ""
+                            }
+
+                        </div>
+
+                    `).join("")
+                    : `
+
+                        <div class="item-card">
+
+                            🎁 Сундуков пока нет.
+
+                        </div>
+
+                    `
+            }
+
+        `);
+
+
+        document
+            .querySelectorAll(".open-chest")
+            .forEach(button => {
+
+                button.onclick =
+                    () => openChest(
+                        Number(
+                            button.dataset.id
+                        )
+                    );
+
+            });
+
+
+        document
+            .querySelectorAll(".buy-chest")
+            .forEach(button => {
+
+                button.onclick =
+                    () => toast(
+                        "Покупка сундуков сейчас не подключена сервером."
+                    );
+
+            });
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+async function openChest(chestId) {
+
+    try {
+
+        const r =
+            await api(
+                "/api/chests/open",
+                {
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify({
+                            chest_id: chestId
+                        })
+                }
+            );
+
+
+        if (r.data) {
+
+            setData(
+                r.data
+            );
+
+        }
+
+
+        toast(
+            r.message ||
+            "🎁 Сундук открыт!"
+        );
+
+
+        loadChests();
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+if ($("chestsBtn")) {
+
+    $("chestsBtn").onclick =
+        loadChests;
+}
+
+
+/* =========================================================
+   НОВОЕ — РЫНОК
+========================================================= */
+
+async function loadMarket() {
+
+    try {
+
+        const r =
+            await api(
+                "/api/market"
+            );
+
+
+        const listings =
+            r.listings ||
+            r.items ||
+            [];
+
+
+        openModal(`
+
+            <h2>
+                🏪 Рынок
+            </h2>
+
+            <button
+                id="marketSell"
+                class="primary"
+                type="button">
+
+                🥚 Продать яйцо
+
+            </button>
+
+
+            <h3>
+                🛒 Объявления
+            </h3>
+
+
+            ${
+                listings.length
+                    ? listings.map(item => `
+
+                        <div class="item-card">
+
+                            <div class="item-top">
+
+                                <b>
+
+                                    🥚
+                                    ${esc(
+                                        item.egg_name ||
+                                        item.name ||
+                                        `Яйцо #${item.egg_id}`
+                                    )}
+
+                                </b>
+
+                                <span class="price">
+
+                                    ${Number(
+                                        item.price || 0
+                                    ).toLocaleString()}
+
+                                    🥚
+
+                                </span>
+
+                            </div>
+
+                            <p>
+
+                                Продавец:
+                                ${
+                                    esc(
+                                        item.seller_username ||
+                                        item.seller_name ||
+                                        "Игрок"
+                                    )
+                                }
+
+                            </p>
+
+
+                            ${
+                                Number(
+                                    item.seller_id ??
+                                    item.user_id
+                                ) ===
+                                Number(
+                                    state.user?.id
+                                )
+                                    ? `
+
+                                        <button
+                                            class="action cancel-listing"
+                                            data-id="${item.id}"
+                                            type="button">
+
+                                            ❌ Отменить
+
+                                        </button>
+
+                                    `
+                                    : `
+
+                                        <button
+                                            class="action buy-listing"
+                                            data-id="${item.id}"
+                                            type="button">
+
+                                            💰 Купить
+
+                                        </button>
+
+                                    `
+                            }
+
+                        </div>
+
+                    `).join("")
+                    : `
+
+                        <div class="item-card">
+
+                            🏪 На рынке пока нет объявлений.
+
+                        </div>
+
+                    `
+            }
+
+        `);
+
+
+        $("marketSell").onclick =
+            openMarketSell;
+
+
+        document
+            .querySelectorAll(".buy-listing")
+            .forEach(button => {
+
+                button.onclick =
+                    () => buyMarketListing(
+                        Number(
+                            button.dataset.id
+                        )
+                    );
+
+            });
+
+
+        document
+            .querySelectorAll(".cancel-listing")
+            .forEach(button => {
+
+                button.onclick =
+                    () => cancelMarketListing(
+                        Number(
+                            button.dataset.id
+                        )
+                    );
+
+            });
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+async function openMarketSell() {
+
+    try {
+
+        const r =
+            await api(
+                "/api/eggs"
+            );
+
+
+        const shop =
+            r.shop || {};
+
+
+        const owned =
+            r.owned || {};
+
+
+        const entries =
+            Array.isArray(shop)
+                ? shop
+                : Object.entries(shop)
+                    .map(([id, egg]) => ({
+                        ...egg,
+                        id:
+                            egg.id ??
+                            id
+                    }))
+                    .filter(
+                        egg =>
+                            Number(
+                                owned[egg.id] || 0
+                            ) > 0
+                    );
+
+
+        openModal(`
+
+            <h2>
+                🥚 Продать яйцо
+            </h2>
+
+            ${
+                entries.length
+                    ? entries.map(egg => `
+
+                        <div class="item-card">
+
+                            <b>
+                                ${esc(
+                                    egg.emoji ||
+                                    "🥚"
+                                )}
+
+                                ${esc(
+                                    egg.name ||
+                                    `Яйцо #${egg.id}`
+                                )}
+                            </b>
+
+                            <p>
+
+                                У тебя:
+                                ${
+                                    owned[egg.id] ||
+                                    0
+                                }
+
+                            </p>
+
+                            <input
+                                id="marketPrice_${egg.id}"
+                                class="input"
+                                type="number"
+                                min="1"
+                                placeholder="Цена в Egg Coins"
+                            >
+
+                            <button
+                                class="action sell-egg"
+                                data-id="${egg.id}"
+                                type="button">
+
+                                🏪 Выставить
+
+                            </button>
+
+                        </div>
+
+                    `).join("")
+                    : `
+
+                        <div class="item-card">
+
+                            🎒 У тебя нет яиц для продажи.
+
+                        </div>
+
+                    `
+            }
+
+        `);
+
+
+        document
+            .querySelectorAll(".sell-egg")
+            .forEach(button => {
+
+                button.onclick =
+                    async () => {
+
+                        const eggId =
+                            Number(
+                                button.dataset.id
+                            );
+
+
+                        const input =
+                            $(
+                                `marketPrice_${eggId}`
+                            );
+
+
+                        const price =
+                            Number(
+                                input?.value
+                            );
+
+
+                        if (
+                            !Number.isInteger(price) ||
+                            price <= 0
+                        ) {
+
+                            toast(
+                                "Введи правильную цену"
+                            );
+
+                            return;
+                        }
+
+
+                        try {
+
+                            const x =
+                                await api(
+                                    "/api/market/list",
+                                    {
+                                        method:
+                                            "POST",
+
+                                        body:
+                                            JSON.stringify({
+                                                egg_id:
+                                                    eggId,
+                                                price
+                                            })
+                                    }
+                                );
+
+
+                            if (x.data) {
+                                setData(x.data);
+                            }
+
+
+                            toast(
+                                x.message ||
+                                "🏪 Яйцо выставлено на рынок"
+                            );
+
+
+                            loadMarket();
+
+
+                        } catch (e) {
+
+                            toast(e.message);
+                        }
+                    };
+            });
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+async function buyMarketListing(
+    listingId
+) {
+
+    try {
+
+        const r =
+            await api(
+                "/api/market/buy",
+                {
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify({
+                            listing_id:
+                                listingId
+                        })
+                }
+            );
+
+
+        if (r.data) {
+            setData(r.data);
+        }
+
+
+        toast(
+            r.message ||
+            "🏪 Покупка выполнена!"
+        );
+
+
+        loadMarket();
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+async function cancelMarketListing(
+    listingId
+) {
+
+    try {
+
+        const r =
+            await api(
+                "/api/market/cancel",
+                {
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify({
+                            listing_id:
+                                listingId
+                        })
+                }
+            );
+
+
+        if (r.data) {
+            setData(r.data);
+        }
+
+
+        toast(
+            r.message ||
+            "❌ Объявление отменено"
+        );
+
+
+        loadMarket();
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+if ($("marketBtn")) {
+
+    $("marketBtn").onclick =
+        loadMarket;
+}
+
+
+/* =========================================================
+   НОВОЕ — КРАЖА ЯИЦ
+========================================================= */
+
+async function loadStealPlayers() {
+
+    try {
+
+        const r =
+            await api(
+                "/api/steal/players"
+            );
+
+
+        const players =
+            r.players ||
+            r.items ||
+            [];
+
+
+        openModal(`
+
+            <h2>
+                🥷 Украсть яйцо
+            </h2>
+
+            <p>
+                Выбери игрока и попробуй
+                украсть одно из его яиц.
+            </p>
+
+
+            ${
+                players.length
+                    ? players.map(player => `
+
+                        <div class="item-card">
+
+                            <div class="item-top">
+
+                                <b>
+
+                                    ${
+                                        player.avatar ||
+                                        "🥚"
+                                    }
+
+                                    ${esc(
+                                        player.username
+                                            ? "@" +
+                                              player.username
+                                            : "Игрок"
+                                    )}
+
+                                </b>
+
+                                <span>
+                                    🥚
+                                    ${
+                                        player.eggs_total ??
+                                        player.eggs ??
+                                        0
+                                    }
+                                </span>
+
+                            </div>
+
+
+                            <button
+                                class="action steal-player"
+                                data-id="${
+                                    player.user_id ??
+                                    player.id
+                                }"
+                                type="button">
+
+                                🥷 Попробовать украсть
+
+                            </button>
+
+                        </div>
+
+                    `).join("")
+                    : `
+
+                        <div class="item-card">
+
+                            😔 Подходящих игроков нет.
+
+                        </div>
+
+                    `
+            }
+
+        `);
+
+
+        document
+            .querySelectorAll(".steal-player")
+            .forEach(button => {
+
+                button.onclick =
+                    () => stealEgg(
+                        Number(
+                            button.dataset.id
+                        )
+                    );
+
+            });
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+async function stealEgg(victimId) {
+
+    if (
+        !confirm(
+            "Попробовать украсть яйцо?"
+        )
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        const r =
+            await api(
+                "/api/steal",
+                {
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify({
+                            victim_id:
+                                victimId
+                        })
+                }
+            );
+
+
+        if (r.data) {
+            setData(r.data);
+        }
+
+
+        toast(
+            r.message ||
+            (
+                r.success
+                    ? "🥷 Яйцо украдено!"
+                    : "❌ Кража не удалась"
+            )
+        );
+
+
+        loadStealPlayers();
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+if ($("stealBtn")) {
+
+    $("stealBtn").onclick =
+        loadStealPlayers;
+}
+
+
+/* =========================================================
+   НОВОЕ — EGG PASS
+========================================================= */
+
+async function loadEggPass() {
+
+    try {
+
+        const r =
+            await api(
+                "/api/egg-pass"
+            );
+
+
+        const levels =
+            r.levels ||
+            r.items ||
+            [];
+
+
+        const currentXp =
+            Number(
+                r.xp ||
+                r.pass_xp ||
+                0
+            );
+
+
+        const currentLevel =
+            Number(
+                r.level ||
+                r.pass_level ||
+                1
+            );
+
+
+        const premium =
+            Boolean(
+                r.premium
+            );
+
+
+        openModal(`
+
+            <h2>
+                🎫 Egg Pass
+            </h2>
+
+            <div class="item-card">
+
+                <b>
+                    ⭐ Уровень Pass:
+                    ${currentLevel}
+                </b>
+
+                <p>
+                    XP:
+                    ${currentXp}
+                </p>
+
+                <p>
+                    ${
+                        premium
+                            ? "💎 Premium активен"
+                            : "🆓 Бесплатная ветка"
+                    }
+                </p>
+
+            </div>
+
+
+            ${
+                levels.length
+                    ? levels.map(level => {
+
+                        const levelNumber =
+                            Number(
+                                level.level ||
+                                level.id ||
+                                1
+                            );
+
+
+                        const claimed =
+                            Boolean(
+                                level.claimed
+                            );
+
+
+                        return `
+
+                            <div class="item-card">
+
+                                <div class="item-top">
+
+                                    <b>
+                                        ⭐ Уровень
+                                        ${levelNumber}
+                                    </b>
+
+                                    <span>
+                                        ${
+                                            claimed
+                                                ? "✅"
+                                                : "🔒"
+                                        }
+                                    </span>
+
+                                </div>
+
+
+                                <p>
+
+                                    🆓 Награда:
+                                    ${
+                                        level.free_reward ??
+                                        level.free ??
+                                        0
+                                    }
+                                    🥚
+
+                                </p>
+
+
+                                <p>
+
+                                    💎 Premium:
+                                    ${
+                                        level.premium_reward ??
+                                        level.premium ??
+                                        0
+                                    }
+                                    🥚
+
+                                </p>
+
+
+                                ${
+                                    level.unlocked &&
+                                    !claimed
+                                        ? `
+
+                                            <button
+                                                class="action claim-pass"
+                                                data-level="${levelNumber}"
+                                                data-track="free"
+                                                type="button">
+
+                                                🎁 Получить
+
+                                            </button>
+
+                                        `
+                                        : ""
+                                }
+
+                            </div>
+
+                        `;
+
+                    }).join("")
+                    : `
+
+                        <div class="item-card">
+
+                            🎫 Уровни Egg Pass пока не загружены.
+
+                        </div>
+
+                    `
+            }
+
+        `);
+
+
+        document
+            .querySelectorAll(".claim-pass")
+            .forEach(button => {
+
+                button.onclick =
+                    () => claimEggPass(
+                        Number(
+                            button.dataset.level
+                        ),
+                        button.dataset.track
+                    );
+
+            });
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+async function claimEggPass(
+    level,
+    track
+) {
+
+    try {
+
+        const r =
+            await api(
+                "/api/egg-pass/claim",
+                {
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify({
+                            level,
+                            track
+                        })
+                }
+            );
+
+
+        if (r.data) {
+            setData(r.data);
+        }
+
+
+        toast(
+            r.message ||
+            "🎁 Награда Egg Pass получена!"
+        );
+
+
+        loadEggPass();
+
+
+    } catch (e) {
+
+        toast(e.message);
+    }
+}
+
+
+if ($("eggPassBtn")) {
+
+    $("eggPassBtn").onclick =
+        loadEggPass;
 }
 
 
@@ -2611,9 +3996,11 @@ async function openWithdrawal() {
                         `)
                         .join("")
                     : `
+
                         <p>
                             🎒 У тебя нет яиц.
                         </p>
+
                     `
             }
 
