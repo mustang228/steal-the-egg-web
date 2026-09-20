@@ -284,6 +284,7 @@ function setData(d) {
             d.avatar || "🥚";
     }
 
+
     if ($("profileAvatar")) {
 
         $("profileAvatar").textContent =
@@ -833,10 +834,6 @@ function renderMathQuestion(question) {
 
                 /*
                  * НЕПРАВИЛЬНЫЙ ОТВЕТ
-                 *
-                 * Сервер сразу создаёт
-                 * новый пример и возвращает
-                 * его в x.question.
                  */
 
                 $("gameArea").innerHTML = `
@@ -877,11 +874,6 @@ function renderMathQuestion(question) {
                     </button>
                 `;
 
-
-                /*
-                 * Повторно подключаем
-                 * обработчик кнопки.
-                 */
 
                 $("mathSend").onclick =
                     async () => {
@@ -992,10 +984,28 @@ if ($("mathBtn")) {
 
 function renderTic(board) {
 
+    /*
+     * Всегда создаём ровно 9 клеток.
+     * Если сервер прислал меньше 9,
+     * недостающие клетки будут пустыми.
+     */
+
     const safeBoard =
-        Array.isArray(board)
-            ? board
-            : Array(9).fill("");
+        Array(9).fill("");
+
+
+    if (Array.isArray(board)) {
+
+        for (
+            let i = 0;
+            i < Math.min(board.length, 9);
+            i++
+        ) {
+
+            safeBoard[i] =
+                board[i] ?? "";
+        }
+    }
 
 
     $("gameArea").innerHTML = `
@@ -1082,7 +1092,9 @@ function renderTic(board) {
                         }
 
 
-                        setData(r.data);
+                        setData(
+                            r.data
+                        );
 
 
                         let title =
@@ -1221,7 +1233,7 @@ async function loadEggs() {
 
 
         /*
-         * MAGAZYN
+         * МАГАЗИН
          */
 
         if (
@@ -2478,26 +2490,10 @@ function openAvatarSelector() {
 
                     } catch (e) {
 
-                        toast(
-                            e.message
-                        );
+                        toast(e.message);
                     }
                 };
         });
-}
-
-
-if ($("avatarButton")) {
-
-    $("avatarButton").onclick =
-        openAvatarSelector;
-}
-
-
-if ($("changeAvatarBtn")) {
-
-    $("changeAvatarBtn").onclick =
-        openAvatarSelector;
 }
 
 
