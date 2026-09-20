@@ -1,4 +1,4 @@
-const API_URL = "https://steal-the-egg-web.onrender.com";
+const API_URL = "https://mustang228.github.io/steal-the-egg-web/";
 
 const tg = window.Telegram?.WebApp;
 
