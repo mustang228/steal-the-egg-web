@@ -1,6 +1,6 @@
 /* =========================================================
    STEAL THE EGG — STYLE.CSS
-   Обновлённая версия
+   Полная версия
 ========================================================= */
 
 * {
@@ -887,6 +887,11 @@ input[type="number"]::-webkit-outer-spin-button {
         );
 }
 
+
+/* =========================================================
+   КАРТОЧКИ ЯИЦ
+========================================================= */
+
 .egg-item {
     position: relative;
 
@@ -910,6 +915,11 @@ input[type="number"]::-webkit-outer-spin-button {
     box-shadow:
         0 7px 22px
         rgba(0, 0, 0, .12);
+
+    transition:
+        border-color .18s ease,
+        transform .18s ease,
+        background .18s ease;
 }
 
 .egg-item:hover {
@@ -920,6 +930,9 @@ input[type="number"]::-webkit-outer-spin-button {
             255,
             .22
         );
+
+    transform:
+        translateY(-1px);
 }
 
 .egg-top {
@@ -1010,6 +1023,249 @@ input[type="number"]::-webkit-outer-spin-button {
     cursor: not-allowed;
 
     box-shadow: none;
+}
+
+
+/* =========================================================
+   СУНДУКИ
+========================================================= */
+
+.chest-card {
+    position: relative;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            145deg,
+            #21102f,
+            #13071e
+        );
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 18px;
+
+    padding: 15px;
+
+    margin-bottom: 10px;
+
+    box-shadow:
+        0 8px 25px
+        rgba(0, 0, 0, .16);
+
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        background .18s ease,
+        box-shadow .18s ease;
+}
+
+.chest-card::before {
+    content: "";
+
+    position: absolute;
+
+    width: 120px;
+    height: 120px;
+
+    right: -45px;
+    top: -45px;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(166, 92, 255, .18),
+            transparent 70%
+        );
+
+    pointer-events: none;
+}
+
+.chest-card:hover {
+    transform:
+        translateY(-2px);
+
+    border-color:
+        var(--border-hover);
+
+    background:
+        linear-gradient(
+            145deg,
+            #281338,
+            #160821
+        );
+
+    box-shadow:
+        0 12px 30px
+        rgba(
+            0,
+            0,
+            0,
+            .22
+        );
+}
+
+.chest-top {
+    position: relative;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.chest-name {
+    font-size: 16px;
+
+    font-weight: 900;
+
+    overflow-wrap: anywhere;
+}
+
+.chest-price {
+    color: var(--gold);
+
+    font-weight: 900;
+
+    white-space: nowrap;
+}
+
+.chest-info {
+    color: var(--muted);
+
+    font-size: 12px;
+
+    line-height: 1.45;
+
+    margin-top: 6px;
+}
+
+.chest-owned {
+    display: inline-block;
+
+    margin-top: 8px;
+
+    padding:
+        5px
+        9px;
+
+    border-radius: 9px;
+
+    background:
+        rgba(
+            166,
+            92,
+            255,
+            .10
+        );
+
+    color: var(--purple3);
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+.chest-actions {
+    display: flex;
+
+    gap: 8px;
+
+    margin-top: 11px;
+}
+
+.chest-actions .action {
+    flex: 1;
+
+    margin-top: 0;
+}
+
+.buy-chest {
+    background:
+        linear-gradient(
+            135deg,
+            #7540df,
+            #a04ff5
+        );
+}
+
+.buy-chest:hover {
+    background:
+        linear-gradient(
+            135deg,
+            #854bea,
+            #ae5aff
+        );
+}
+
+.open-chest {
+    background:
+        linear-gradient(
+            135deg,
+            #3e9d78,
+            #52c998
+        );
+}
+
+.open-chest:hover {
+    background:
+        linear-gradient(
+            135deg,
+            #48b58b,
+            #61d9a8
+        );
+}
+
+.open-chest:disabled {
+    opacity: .35;
+
+    cursor: not-allowed;
+
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   НАГРАДА ИЗ СУНДУКА
+========================================================= */
+
+.chest-reward {
+    text-align: center;
+
+    padding:
+        18px
+        10px;
+}
+
+.chest-reward-icon {
+    font-size: 58px;
+
+    margin-bottom: 8px;
+
+    animation:
+        pulse 1s ease-in-out infinite;
+}
+
+.chest-reward-title {
+    font-size: 19px;
+
+    font-weight: 900;
+
+    margin-bottom: 5px;
+}
+
+.chest-reward-text {
+    color: var(--muted);
+
+    font-size: 13px;
+
+    line-height: 1.45;
 }
 
 
@@ -1231,7 +1487,8 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .avatar:hover {
-    transform: scale(1.04);
+    transform:
+        scale(1.04);
 
     box-shadow:
         0 0 40px
@@ -1365,11 +1622,35 @@ input[type="number"]::-webkit-outer-spin-button {
             .4
         );
 
-    transform: scale(1.04);
+    transform:
+        scale(1.04);
 }
 
 .avatar-choice:active {
-    transform: scale(.94);
+    transform:
+        scale(.94);
+}
+
+.avatar-choice.active {
+    border-color:
+        var(--purple2);
+
+    background:
+        rgba(
+            143,
+            77,
+            255,
+            .18
+        );
+
+    box-shadow:
+        0 0 18px
+        rgba(
+            143,
+            77,
+            255,
+            .2
+        );
 }
 
 
@@ -1400,6 +1681,8 @@ input[type="number"]::-webkit-outer-spin-button {
 
     font-size: 30px;
 
+    font-weight: 900;
+
     border:
         1px solid
         var(--border);
@@ -1408,10 +1691,17 @@ input[type="number"]::-webkit-outer-spin-button {
 
     align-items: center;
     justify-content: center;
+
+    transition:
+        background .15s ease,
+        border-color .15s ease,
+        transform .1s ease,
+        opacity .15s ease;
 }
 
 .tic button:hover:not(:disabled) {
-    background: #1c0c29;
+    background:
+        #1c0c29;
 
     border-color:
         rgba(
@@ -1420,12 +1710,30 @@ input[type="number"]::-webkit-outer-spin-button {
             255,
             .35
         );
+
+    transform:
+        scale(1.02);
+}
+
+.tic button:active:not(:disabled) {
+    transform:
+        scale(.95);
 }
 
 .tic button:disabled {
     cursor: default;
 
     opacity: 1;
+}
+
+.tic button[data-value="X"] {
+    color:
+        var(--purple3);
+}
+
+.tic button[data-value="O"] {
+    color:
+        var(--cyan);
 }
 
 
@@ -1594,6 +1902,11 @@ input[type="number"]::-webkit-outer-spin-button {
             0,
             .12
         );
+
+    transition:
+        border-color .18s ease,
+        transform .18s ease,
+        background .18s ease;
 }
 
 .item-card:hover {
@@ -1604,6 +1917,9 @@ input[type="number"]::-webkit-outer-spin-button {
             255,
             .2
         );
+
+    transform:
+        translateY(-1px);
 }
 
 .item-card h3 {
@@ -1665,6 +1981,23 @@ input[type="number"]::-webkit-outer-spin-button {
     box-shadow:
         0 7px 22px
         rgba(0, 0, 0, .12);
+
+    transition:
+        border-color .18s ease,
+        transform .18s ease;
+}
+
+.achievement:hover {
+    border-color:
+        rgba(
+            166,
+            92,
+            255,
+            .2
+        );
+
+    transform:
+        translateY(-1px);
 }
 
 .achievement b {
@@ -1695,6 +2028,23 @@ input[type="number"]::-webkit-outer-spin-button {
     padding: 14px;
 
     margin-bottom: 9px;
+
+    transition:
+        border-color .18s ease,
+        transform .18s ease;
+}
+
+.task:hover {
+    border-color:
+        rgba(
+            166,
+            92,
+            255,
+            .2
+        );
+
+    transform:
+        translateY(-1px);
 }
 
 .task p {
@@ -1710,43 +2060,22 @@ input[type="number"]::-webkit-outer-spin-button {
    НОВЫЕ СИСТЕМЫ
 ========================================================= */
 
-/*
-   ПИТОМЦЫ
-   СУНДУКИ
-   РЫНОК
-   STEAL
-   EGG PASS
-
-   Они используют .item-card,
-   поэтому автоматически получают
-   основное оформление.
-
-   Ниже дополнительные стили.
-*/
-
-
-/* Активный питомец */
-
 .item-card h3:first-child {
     color: #fff;
 }
 
-
-/* Редкости */
-
 .item-card .rarity {
     line-height: 1.45;
 }
-
-
-/* Кнопки нескольких действий */
 
 .item-card .action + .action {
     margin-left: 6px;
 }
 
 
-/* Кнопка покупки */
+/* =========================================================
+   КНОПКИ ПОКУПКИ
+========================================================= */
 
 .buy-item,
 .buy-chest,
@@ -1759,8 +2088,21 @@ input[type="number"]::-webkit-outer-spin-button {
         );
 }
 
+.buy-item:hover,
+.buy-chest:hover,
+.buy-listing:hover {
+    background:
+        linear-gradient(
+            135deg,
+            #854bea,
+            #ae5aff
+        );
+}
 
-/* Активация */
+
+/* =========================================================
+   АКТИВАЦИЯ
+========================================================= */
 
 .activate-item,
 .activate-pet {
@@ -1783,7 +2125,9 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 
-/* Кража */
+/* =========================================================
+   КРАЖА
+========================================================= */
 
 .steal-player {
     background:
@@ -1804,7 +2148,9 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 
-/* Продажа */
+/* =========================================================
+   ПРОДАЖА
+========================================================= */
 
 .sell-egg {
     background:
@@ -1816,7 +2162,9 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 
-/* Отмена */
+/* =========================================================
+   ОТМЕНА
+========================================================= */
 
 .cancel-listing {
     background:
@@ -1828,7 +2176,9 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 
-/* Egg Pass */
+/* =========================================================
+   EGG PASS
+========================================================= */
 
 .claim-pass {
     background:
@@ -1838,11 +2188,6 @@ input[type="number"]::-webkit-outer-spin-button {
             #bd70ff
         );
 }
-
-
-/* =========================================================
-   EGG PASS — ДОПОЛНИТЕЛЬНО
-========================================================= */
 
 .item-card:has(.claim-pass) {
     border-color:
@@ -2032,7 +2377,8 @@ input[type="number"]::-webkit-outer-spin-button {
     background:
         #382044;
 
-    transform: rotate(5deg);
+    transform:
+        rotate(5deg);
 }
 
 
@@ -2260,7 +2606,7 @@ input[type="number"]::-webkit-outer-spin-button {
 
 
 /* =========================================================
-   HOVER — ДЕСКТОП
+   ОБЩИЕ HOVER
 ========================================================= */
 
 @media (hover: hover) {
@@ -2271,7 +2617,8 @@ input[type="number"]::-webkit-outer-spin-button {
     .task,
     .leader,
     .level-card,
-    .feature {
+    .feature,
+    .chest-card {
         transition:
             border-color .18s ease,
             transform .18s ease,
@@ -2281,7 +2628,8 @@ input[type="number"]::-webkit-outer-spin-button {
     .egg-item:hover,
     .item-card:hover,
     .achievement:hover,
-    .task:hover {
+    .task:hover,
+    .chest-card:hover {
         transform:
             translateY(-1px);
     }
@@ -2338,11 +2686,13 @@ input[type="number"]::-webkit-outer-spin-button {
     }
 
     .egg-top,
-    .item-top {
+    .item-top,
+    .chest-top {
         align-items: flex-start;
     }
 
-    .price {
+    .price,
+    .chest-price {
         font-size: 13px;
     }
 
@@ -2351,6 +2701,14 @@ input[type="number"]::-webkit-outer-spin-button {
             20px
             12px
             25px;
+    }
+
+    .chest-actions {
+        flex-direction: column;
+    }
+
+    .chest-actions .action {
+        width: 100%;
     }
 }
 
@@ -2400,6 +2758,18 @@ input[type="number"]::-webkit-outer-spin-button {
     .bottom-nav button span {
         font-size: 8px;
     }
+
+    .chest-card {
+        padding: 12px;
+    }
+
+    .chest-name {
+        font-size: 14px;
+    }
+
+    .chest-price {
+        font-size: 12px;
+    }
 }
 
 
@@ -2410,15 +2780,18 @@ input[type="number"]::-webkit-outer-spin-button {
 @keyframes pulse {
 
     0% {
-        transform: scale(1);
+        transform:
+            scale(1);
     }
 
     50% {
-        transform: scale(1.03);
+        transform:
+            scale(1.03);
     }
 
     100% {
-        transform: scale(1);
+        transform:
+            scale(1);
     }
 }
 
