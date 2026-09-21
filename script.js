@@ -1811,182 +1811,92 @@ if ($("profileItems")) {
 ========================= */
 async function loadPets() {
     try {
-        const r =
-            await api(
-                "/api/pets"
-            );
-        const pets =
-            r.pets ||
-            r.items ||
-            [];
-        const owned =
-            r.owned ||
-            r.player_pets ||
-            r.my_pets ||
-            [];
-        const active =
-            r.active_pet ||
-            null;
+        const r = await api("/api/pets");
+        const all = Object.values(r.pets || {});
+        const owned = all.filter(p => p.owned);
+        const locked = all.filter(p => !p.owned);
+        const active = r.active_pet || null;
         openModal(`
-            <h2>
-                🐾 Питомцы
-            </h2>
-            ${
-                active
-                    ? `
-                        <div class="item-card">
-                            <h3>
-                                ⭐ Активный питомец
-                            </h3>
-                            <b>
-                                🐾 ${esc(
-                                    active.name ||
-                                    "Питомец"
-                                )}
-                            </b>
-                            <p>
-                                Редкость:
-                                ${esc(
-                                    active.rarity ||
-                                    "—"
-                                )}
-                            </p>
-                            <p>
-                                Бонус:
-                                +${active.bonus_value || 0}
-                            </p>
-                        </div>
-                    `
-                    : `
-                        <div class="item-card">
-                            🐾 Активного питомца нет.
-                        </div>
-                    `
-            }
-            <h3>
-                🎒 Мои питомцы
-            </h3>
+            <h2>🐾 Питомцы</h2>
+            <div class="item-card">
+                ${
+                    active
+                        ? `
+                            <h3>⭐ Активный питомец</h3>
+                            <b>${esc(active.name)}</b>
+                            <p>${esc(active.rarity)}</p>
+                            <p>Бонус: <b>+${active.bonus_percent}% Egg Coins</b>
+                            к играм, обмену и сундукам</p>
+                        `
+                        : `<p>🐾 Активного питомца нет.
+                           ${owned.length ? "Выбери одного ниже." : ""}</p>`
+                }
+            </div>
+            <h3>🎒 Мои питомцы (${owned.length}/${all.length})</h3>
             ${
                 owned.length
                     ? owned.map(p => `
                         <div class="item-card">
                             <div class="item-top">
-                                <b>
-                                    🐾 ${esc(
-                                        p.name ||
-                                        "Питомец"
-                                    )}
-                                </b>
-                                <span>
-                                    ${esc(
-                                        p.rarity ||
-                                        ""
-                                    )}
-                                </span>
+                                <b>${esc(p.name)}</b>
+                                <span>${esc(p.rarity)}</span>
                             </div>
-                            <p>
-                                ${esc(
-                                    p.bonus_type ||
-                                    "Бонус"
-                                )}
-                                :
-                                +${p.bonus_value || 0}
-                            </p>
+                            <p>${esc(p.bonus)}</p>
                             <button
                                 class="action activate-pet"
-                                data-id="${
-                                    p.pet_id ??
-                                    p.id
-                                }"
+                                data-id="${p.id}"
                                 type="button"
-                                ${
-                                    p.active
-                                        ? "disabled"
-                                        : ""
-                                }
+                                ${p.active ? "disabled" : ""}
                             >
-                                ${
-                                    p.active
-                                        ? "✅ Активен"
-                                        : "⚡ Активировать"
-                                }
+                                ${p.active ? "✅ Активен" : "⚡ Активировать"}
                             </button>
                         </div>
                     `).join("")
-                    : `
-                        <div class="item-card">
-                            🎒 У тебя пока нет питомцев.
-                        </div>
-                    `
+                    : `<div class="item-card">
+                           🎒 У тебя пока нет питомцев.<br>
+                           <small>${esc(r.how_to_get || "")}</small>
+                       </div>`
             }
-            <h3>
-                📖 Все питомцы
-            </h3>
             ${
-                pets.length
-                    ? pets.map(p => `
-                        <div class="item-card">
-                            <div class="item-top">
-                                <b>
-                                    🐾 ${esc(
-                                        p.name ||
-                                        "Питомец"
-                                    )}
-                                </b>
-                                <span>
-                                    ${esc(
-                                        p.rarity ||
-                                        ""
-                                    )}
-                                </span>
+                locked.length
+                    ? `
+                        <h3>📖 Ещё не открыты</h3>
+                        ${locked.map(p => `
+                            <div class="item-card">
+                                <div class="item-top">
+                                    <b>🔒 ${esc(p.name)}</b>
+                                    <span>${esc(p.rarity)}</span>
+                                </div>
+                                <p>${esc(p.bonus)}</p>
                             </div>
-                            <p>
-                                ${esc(
-                                    p.bonus_type ||
-                                    "Бонус"
-                                )}
-                                :
-                                +${p.bonus_value || 0}
-                            </p>
-                        </div>
-                    `).join("")
+                        `).join("")}
+                    `
                     : ""
             }
         `);
         document
             .querySelectorAll(".activate-pet")
             .forEach(button => {
-                button.onclick =
-                    async () => {
-                        try {
-                            const x =
-                                await api(
-                                    "/api/pets/activate",
-                                    {
-                                        method:
-                                            "POST",
-                                        body:
-                                            JSON.stringify({
-                                                pet_id:
-                                                    Number(
-                                                        button
-                                                            .dataset
-                                                            .id
-                                                    )
-                                            })
-                                    }
-                                );
-                            toast(
-                                x.message ||
-                                "🐾 Питомец активирован"
-                            );
-                            loadPets();
-                        } catch (e) {
-                            toast(
-                                e.message
-                            );
+                button.onclick = async () => {
+                    try {
+                        const x = await api(
+                            "/api/pets/activate",
+                            {
+                                method: "POST",
+                                body: JSON.stringify({
+                                    pet_id: Number(button.dataset.id)
+                                })
+                            }
+                        );
+                        if (x.data) {
+                            setData(x.data);
                         }
-                    };
+                        toast("🐾 Питомец активирован");
+                        loadPets();
+                    } catch (e) {
+                        toast(e.message);
+                    }
+                };
             });
     } catch (e) {
         toast(e.message);
@@ -2183,11 +2093,16 @@ async function openChest(chestId) {
                 r.reward.type === "pet"
             ) {
                 toast(
-                    `🐾 Получен питомец: ${
-                        r.reward.pet?.name ||
-                        "Питомец"
-                    }`
-                );
+                        `🐾 Получен питомец: ${r.reward.pet?.name || "Питомец"}` +
+                        (r.reward.auto_activated
+                            ? " · активирован автоматически!"
+                            : " · включи его в разделе «Питомцы»")
+                    );
+                } else if (r.reward.type === "pet_duplicate") {
+                    toast(
+                        `🐾 ${r.reward.pet?.name || "Питомец"} у тебя уже есть · ` +
+                        `+${r.reward.amount} Egg Coins взамен`
+                    );
             } else if (
                 r.reward.type === "coins"
             ) {
