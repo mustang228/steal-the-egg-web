@@ -47,7 +47,9 @@ async function api(url, options = {}) {
         throw err;
     }
     if (!r.ok || d.ok === false) {
-        throw Error(d.error || "Ошибка");
+        const err = Error(d.error || "Ошибка");
+        err.retryable = r.status >= 500;
+        throw err;
     }
     return d;
 }
