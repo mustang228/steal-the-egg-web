@@ -26,29 +26,20 @@ function headers() {
     };
 }
 async function api(url, options = {}) {
-    let r;
-    try {
-        r = await fetch(`${API_URL}${url}`, {
-            ...options,
-            headers: {
-                ...headers(),
-                ...(options.headers || {})
-            }
-        });
-    } catch (e) {
-        const err = Error("Нет связи с сервером");
-        err.retryable = true;
-        throw err;
-    }
-    const d = await r.json().catch(() => null);
-    if (!d) {
-        const err = Error("Сервер не отвечает");
-        err.retryable = r.status >= 500;
-        throw err;
-    }
+    const r = await fetch(`${API_URL}${url}`, {
+        ...options,
+        headers: {
+            ...headers(),
+            ...(options.headers || {})
+        }
+    });
+    const d = await r.json().catch(() => ({
+        ok: false,
+        error: "Ошибка сервера"
+    }));
     if (!r.ok || d.ok === false) {
         const err = Error(d.error || "Ошибка");
-        err.retryable = r.status >= 500;
+        err.status = r.status;
         throw err;
     }
     return d;
@@ -79,7 +70,7 @@ function showPage(page) {
             );
         });
     document
-        .querySelectorAll(".bottom-nav [data-page]")
+        .querySelectorAll("[data-page]")
         .forEach(x => {
             x.classList.toggle(
                 "active",
@@ -122,12 +113,12 @@ function setData(d) {
         $("level").textContent =
             Number(d.level || 1);
     }
+    const xp = Number(d.xp || 0);
     const xpRequired =
-        Number(d.xp_required || 100);
-    const xp =
-        d.xp_in_level !== undefined
-            ? Number(d.xp_in_level)
-            : Number(d.xp || 0) % xpRequired;
+        Number(
+            d.xp_required ||
+            ((Number(d.level || 1)) * 100)
+        );
     if ($("xpText")) {
         $("xpText").textContent =
             `${xp}/${xpRequired} XP`;
@@ -211,83 +202,97 @@ function setData(d) {
 /* =========================
    INIT
 ========================= */
-function splashText(text) {
-    const e = $("splashText");
-    if (e) e.textContent = text;
-}
 function hideSplash() {
-    const s = $("splash");
-    if (!s) return;
-    s.classList.add("hide");
-    setTimeout(() => s.remove(), 450);
+    const splash = $("splash");
+    if (!splash) {
+        return;
+    }
+    splash.classList.add("hide");
+    setTimeout(() => splash.remove(), 400);
 }
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+/*
+   Первый запрос к серверу. На бесплатном Render сервер после
+   простоя «просыпается» до минуты - показываем понятный текст
+   и повторяем запрос, если прокси ответил 502/503/504 или сети нет.
+*/
+async function initRequest() {
+    const started = Date.now();
+    const timer = setInterval(() => {
+        const sec = Math.round((Date.now() - started) / 1000);
+        if ($("splashText") && sec >= 4) {
+            $("splashText").textContent =
+                `Сервер просыпается… ${sec} с. Обычно до минуты, подожди.`;
+        }
+    }, 1000);
+    try {
+        for (let attempt = 1; ; attempt++) {
+            try {
+                return await api(
+                    "/api/init",
+                    {
+                        method: "POST",
+                        body: "{}"
+                    }
+                );
+            } catch (e) {
+                const retryable =
+                    e instanceof TypeError ||
+                    [502, 503, 504].includes(e.status);
+                if (!retryable || attempt >= 4) {
+                    throw e;
+                }
+                await new Promise(resolve => setTimeout(resolve, 2500));
+            }
+        }
+    } finally {
+        clearInterval(timer);
+    }
+}
 async function init() {
     if (tg) {
         tg.ready();
         tg.expand();
     }
-    let r = null;
-    let failure = null;
-    /* Бесплатный хостинг засыпает - первый запрос может ждать
-       десятки секунд, поэтому пробуем несколько раз. */
-    const ATTEMPTS = 8;
-    for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
-        try {
-            r = await api(
-                "/api/init",
-                {
-                    method: "POST",
-                    body: "{}"
-                }
-            );
-            break;
-        } catch (e) {
-            failure = e;
-            if (!e.retryable || attempt === ATTEMPTS) {
-                break;
-            }
-            splashText(
-                `Сервер просыпается… ${attempt}/${ATTEMPTS}`
-            );
-            await sleep(3000);
-        }
-    }
-    if ($("app")) {
-        $("app").classList.remove("hidden");
-    }
-    hideSplash();
-    if (!r) {
+    try {
+        const r = await initRequest();
+        state.user = r.user;
+        setData(r.data);
         if ($("username")) {
             $("username").textContent =
-                tg?.initData
-                    ? "Сервер недоступен"
+                state.user.username
+                    ? "@" + state.user.username
+                    : state.user.first_name || "Игрок";
+        }
+        if ($("app")) {
+            $("app").classList.remove("hidden");
+        }
+        hideSplash();
+        if (r.login?.claimed) {
+            toast(
+                `🔥 Серия ${r.login.streak} дней · +${r.login.reward} Egg Coins`
+            );
+        }
+        (r.new_achievements || [])
+            .forEach(a => {
+                setTimeout(() => {
+                    toast(
+                        `🏆 ${a.name} · +${a.reward} Egg Coins`
+                    );
+                }, 700);
+            });
+    } catch (e) {
+        if ($("app")) {
+            $("app").classList.remove("hidden");
+        }
+        hideSplash();
+        if ($("username")) {
+            $("username").textContent =
+                e.status
+                    ? "Сервер не отвечает, попробуй позже"
                     : "Открой приложение через Telegram";
         }
-        toast(failure?.message || "Ошибка запуска");
-        return;
+        toast(e.message);
     }
-    state.user = r.user;
-    setData(r.data);
-    if ($("username")) {
-        $("username").textContent =
-            state.user.username
-                ? "@" + state.user.username
-                : state.user.first_name || "Игрок";
-    }
-    if (r.login?.claimed) {
-        toast(
-            `🔥 Серия ${r.login.streak} дней · +${r.login.reward} Egg Coins`
-        );
-    }
-    (r.new_achievements || [])
-        .forEach((a, i) => {
-            setTimeout(() => {
-                toast(
-                    `🏆 ${a.name} · +${a.reward} Egg Coins`
-                );
-            }, 700 + i * 2400);
-        });
 }
 /* =========================
    НАВИГАЦИЯ
@@ -478,11 +483,6 @@ if ($("guessBtn")) {
                                 Награда:
                                 +${r.reward} Egg Coins
                             </p>
-                            ${
-                                r.capped
-                                    ? `<p><small>⚠️ Достигнут дневной лимит наград за игры</small></p>`
-                                    : ""
-                            }
                             <button
                                 id="guessAgain"
                                 class="primary"
@@ -582,11 +582,6 @@ function renderMathQuestion(question) {
                             Награда:
                             +${x.reward} Egg Coins
                         </p>
-                            ${
-                                x.capped
-                                    ? `<p><small>⚠️ Достигнут дневной лимит наград за игры</small></p>`
-                                    : ""
-                            }
                         <button
                             id="mathNext"
                             class="primary"
@@ -767,11 +762,6 @@ function renderTic(board) {
                                 +${r.reward || 0}
                                 Egg Coins
                             </p>
-                            ${
-                                r.capped
-                                    ? `<p><small>⚠️ Достигнут дневной лимит наград за игры</small></p>`
-                                    : ""
-                            }
                             <button
                                 id="ticAgain"
                                 class="primary"
@@ -829,6 +819,685 @@ if ($("ticBtn")) {
                 toast(e.message);
             }
         };
+}
+/* =========================
+   ОБЩЕЕ ДЛЯ НОВЫХ ИГР
+========================= */
+const sleep = ms =>
+    new Promise(resolve => setTimeout(resolve, ms));
+function limitText(left) {
+    return Number(left) > 0
+        ? `Сегодня можно получить ещё ${Number(left)} Egg Coins`
+        : "Дневной лимит наград достигнут — игра даёт только XP";
+}
+function toastAchievements(r) {
+    (r.new_achievements || [])
+        .forEach(a => {
+            setTimeout(() => {
+                toast(
+                    `🏆 ${a.name} · +${a.reward} Egg Coins`
+                );
+            }, 900);
+        });
+}
+function formatSeconds(total) {
+    const s = Math.max(0, Number(total) || 0);
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return h > 0 ? `${h} ч ${m} мин` : `${m} мин`;
+}
+/* =========================
+   НАПЁРСТКИ
+========================= */
+let shellBusy = false;
+async function startShell() {
+    try {
+        const r =
+            await api(
+                "/api/game/shell/start",
+                {
+                    method: "POST",
+                    body: "{}"
+                }
+            );
+        shellBusy = false;
+        renderShell(
+            r.cups,
+            r.reward,
+            r.left
+        );
+    } catch (e) {
+        toast(e.message);
+    }
+}
+function renderShell(cups, reward, left) {
+    $("gameArea").innerHTML = `
+        <h3>
+            🥚 Напёрстки
+        </h3>
+        <p>
+            Где спрятано яйцо? Угадай стакан —
+            награда +${Number(reward)} Egg Coins.
+        </p>
+        <div class="cups">
+            ${
+                Array.from({ length: cups }, (_, i) => `
+                    <button
+                        class="cup"
+                        data-cup="${i}"
+                        type="button">
+                        🥤
+                    </button>
+                `).join("")
+            }
+        </div>
+        <p>
+            ${esc(limitText(left))}
+        </p>
+    `;
+    document
+        .querySelectorAll("[data-cup]")
+        .forEach(button => {
+            button.onclick =
+                () => pickShell(
+                    Number(button.dataset.cup),
+                    cups
+                );
+        });
+}
+async function pickShell(index, cups) {
+    if (shellBusy) {
+        return;
+    }
+    shellBusy = true;
+    try {
+        const r =
+            await api(
+                "/api/game/shell/pick",
+                {
+                    method: "POST",
+                    body: JSON.stringify({ index })
+                }
+            );
+        if (r.data) {
+            setData(r.data);
+        }
+        $("gameArea").innerHTML = `
+            <h3>
+                ${
+                    r.result === "win"
+                        ? "🎉 Ты нашёл яйцо!"
+                        : "❌ Мимо!"
+                }
+            </h3>
+            <div class="cups">
+                ${
+                    Array.from({ length: cups }, (_, i) => `
+                        <button
+                            class="cup ${i === r.egg ? "egg" : ""} ${i === index ? "picked" : ""}"
+                            type="button"
+                            disabled>
+                            ${i === r.egg ? "🥚" : "🥤"}
+                        </button>
+                    `).join("")
+                }
+            </div>
+            <p>
+                Награда: +${Number(r.reward || 0)} Egg Coins
+            </p>
+            <p>
+                ${esc(limitText(r.left))}
+            </p>
+            <button
+                id="shellAgain"
+                class="primary"
+                type="button">
+                🔄 Играть ещё
+            </button>
+        `;
+        $("shellAgain").onclick = startShell;
+        toastAchievements(r);
+    } catch (e) {
+        toast(e.message);
+    } finally {
+        shellBusy = false;
+    }
+}
+if ($("shellBtn")) {
+    $("shellBtn").onclick = startShell;
+}
+/* =========================
+   НАЙДИ ПАРУ
+========================= */
+const memState = {
+    busy: false
+};
+function memCell(i) {
+    return document.querySelector(
+        `[data-mem="${i}"]`
+    );
+}
+function memShow(i, value, done) {
+    const cell = memCell(i);
+    if (!cell) {
+        return;
+    }
+    cell.textContent = value;
+    cell.classList.add("open");
+    if (done) {
+        cell.classList.add("done");
+    }
+    cell.disabled = true;
+}
+function memHide(i) {
+    const cell = memCell(i);
+    if (!cell) {
+        return;
+    }
+    cell.textContent = "❔";
+    cell.classList.remove("open");
+    cell.disabled = false;
+}
+async function startMemory() {
+    try {
+        const r =
+            await api(
+                "/api/game/memory/start",
+                {
+                    method: "POST",
+                    body: "{}"
+                }
+            );
+        memState.busy = false;
+        $("gameArea").innerHTML = `
+            <h3>
+                🃏 Найди пару
+            </h3>
+            <p>
+                Открывай по две карточки. Чем меньше ходов,
+                тем больше награда (до 8 Egg Coins).
+            </p>
+            <div class="mem-grid">
+                ${
+                    Array.from({ length: r.size }, (_, i) => `
+                        <button
+                            class="mem-card"
+                            data-mem="${i}"
+                            type="button">
+                            ❔
+                        </button>
+                    `).join("")
+                }
+            </div>
+            <p>
+                Ходов: <b id="memMoves">0</b>
+            </p>
+            <p>
+                ${esc(limitText(r.left))}
+            </p>
+        `;
+        document
+            .querySelectorAll("[data-mem]")
+            .forEach(button => {
+                button.onclick =
+                    () => flipMemory(
+                        Number(button.dataset.mem)
+                    );
+            });
+    } catch (e) {
+        toast(e.message);
+    }
+}
+async function flipMemory(index) {
+    if (memState.busy) {
+        return;
+    }
+    memState.busy = true;
+    try {
+        const r =
+            await api(
+                "/api/game/memory/flip",
+                {
+                    method: "POST",
+                    body: JSON.stringify({ index })
+                }
+            );
+        memShow(index, r.value, false);
+        if ($("memMoves")) {
+            $("memMoves").textContent = r.moves;
+        }
+        if (r.phase === "mismatch") {
+            await sleep(800);
+            memHide(index);
+            memHide(r.first_index);
+        } else if (
+            r.phase === "match" ||
+            r.phase === "win"
+        ) {
+            memShow(r.first_index, r.first_value, true);
+            memShow(index, r.value, true);
+        }
+        if (r.phase === "win") {
+            if (r.data) {
+                setData(r.data);
+            }
+            await sleep(700);
+            $("gameArea").innerHTML = `
+                <h3>
+                    🎉 Все пары найдены!
+                </h3>
+                <p>
+                    Ходов: <b>${Number(r.moves)}</b>
+                </p>
+                <p>
+                    Награда: +${Number(r.reward || 0)} Egg Coins
+                </p>
+                <p>
+                    ${esc(limitText(r.left))}
+                </p>
+                <button
+                    id="memoryAgain"
+                    class="primary"
+                    type="button">
+                    🔄 Играть ещё
+                </button>
+            `;
+            $("memoryAgain").onclick = startMemory;
+            toastAchievements(r);
+        }
+    } catch (e) {
+        toast(e.message);
+    } finally {
+        memState.busy = false;
+    }
+}
+if ($("memoryBtn")) {
+    $("memoryBtn").onclick = startMemory;
+}
+/* =========================
+   КОЛЕСО УДАЧИ
+========================= */
+async function openWheel() {
+    try {
+        const r =
+            await api(
+                "/api/wheel"
+            );
+        renderWheel(r, null);
+    } catch (e) {
+        toast(e.message);
+    }
+}
+function renderWheel(r, resultLabel) {
+    const prizes = r.prizes || [];
+    $("gameArea").innerHTML = `
+        <h3>
+            🎡 Колесо удачи
+        </h3>
+        <p>
+            ${
+                r.available
+                    ? "Один бесплатный спин в день. Испытай удачу!"
+                    : "Сегодня ты уже крутил колесо."
+            }
+        </p>
+        <div class="wheel-grid">
+            ${
+                prizes.map((p, i) => `
+                    <div
+                        class="wheel-cell"
+                        data-wheel="${i}">
+                        ${esc(p.label)}
+                    </div>
+                `).join("")
+            }
+        </div>
+        ${
+            resultLabel
+                ? `
+                    <p>
+                        Твой приз: <b>${esc(resultLabel)}</b>
+                    </p>
+                `
+                : ""
+        }
+        ${
+            r.available
+                ? `
+                    <button
+                        id="wheelSpin"
+                        class="primary"
+                        type="button">
+                        🎡 Крутить
+                    </button>
+                `
+                : `
+                    <p>
+                        Следующий спин через
+                        ${esc(formatSeconds(r.seconds_left))}
+                    </p>
+                `
+        }
+    `;
+    if ($("wheelSpin")) {
+        $("wheelSpin").onclick =
+            () => spinWheel(r);
+    }
+}
+function wheelHot(index) {
+    document
+        .querySelectorAll("[data-wheel]")
+        .forEach(cell => {
+            cell.classList.toggle(
+                "hot",
+                Number(cell.dataset.wheel) === index
+            );
+        });
+}
+async function spinWheel(status) {
+    const button = $("wheelSpin");
+    if (button) {
+        button.disabled = true;
+    }
+    let r;
+    try {
+        r =
+            await api(
+                "/api/wheel/spin",
+                {
+                    method: "POST",
+                    body: "{}"
+                }
+            );
+    } catch (e) {
+        toast(e.message);
+        if (button) {
+            button.disabled = false;
+        }
+        return;
+    }
+    const n = (status.prizes || []).length || 1;
+    const steps = n * 2 + Number(r.index) + 1;
+    for (let s = 0; s < steps; s++) {
+        wheelHot(s % n);
+        await sleep(
+            60 + Math.round(Math.pow(s / steps, 3) * 220)
+        );
+    }
+    if (r.data) {
+        setData(r.data);
+    }
+    renderWheel(
+        {
+            ...status,
+            available: false,
+            seconds_left: status.seconds_left
+        },
+        r.prize.label
+    );
+    const cell = document.querySelector(
+        `[data-wheel="${Number(r.index)}"]`
+    );
+    if (cell) {
+        cell.classList.add("win");
+    }
+    toast(`🎁 ${r.prize.label}`);
+    toastAchievements(r);
+}
+if ($("wheelBtn")) {
+    $("wheelBtn").onclick = openWheel;
+}
+/* =========================
+   ДУЭЛЬ
+========================= */
+function duelResultTitle(result) {
+    if (result === "win") {
+        return "🏆 Победа!";
+    }
+    if (result === "draw") {
+        return "🤝 Ничья";
+    }
+    return "❌ Поражение";
+}
+function duelAge(seconds) {
+    const s = Math.max(0, Number(seconds) || 0);
+    if (s < 60) {
+        return "только что";
+    }
+    if (s < 3600) {
+        return `${Math.floor(s / 60)} мин назад`;
+    }
+    return `${Math.floor(s / 3600)} ч назад`;
+}
+async function openDuel() {
+    try {
+        const r =
+            await api(
+                "/api/duel"
+            );
+        renderDuel(r);
+        if (r.unseen > 0) {
+            api(
+                "/api/duel/seen",
+                {
+                    method: "POST",
+                    body: "{}"
+                }
+            ).catch(() => {});
+        }
+    } catch (e) {
+        toast(e.message);
+    }
+}
+function renderDuel(r) {
+    const moves = r.moves || [];
+    const moveButtons = attrs =>
+        moves.map(m => `
+            <button
+                class="duel-move"
+                data-move="${esc(m.id)}"
+                ${attrs}
+                type="button">
+                ${esc(m.label)}
+            </button>
+        `).join("");
+    const done =
+        (r.mine || []).filter(x => x.status === "done");
+    const mineOpen =
+        (r.mine || []).filter(x => x.status === "open");
+    $("gameArea").innerHTML = `
+        <h3>
+            ⚔️ Дуэль
+        </h3>
+        <p>
+            Камень-ножницы-бумага с другими игроками.
+            Оставь вызов со скрытым ходом или прими чужой.
+            Награда: победа +8, ничья +3, поражение +1 Egg Coins.
+        </p>
+        <p>
+            ${esc(limitText(r.left))}
+        </p>
+        ${
+            done.length
+                ? `
+                    <h3>
+                        Результаты твоих вызовов
+                    </h3>
+                    ${
+                        done.map(d => `
+                            <div class="duel-row">
+                                ${
+                                    d.seen
+                                        ? ""
+                                        : `<span class="duel-new">🆕</span>`
+                                }
+                                ${esc(duelResultTitle(d.result))}
+                                против ${esc(playerLabel(d.opponent))}:
+                                ${esc(d.my_move)} vs ${esc(d.opponent_move)}
+                                (+${Number(d.reward || 0)} Egg Coins)
+                            </div>
+                        `).join("")
+                    }
+                `
+                : ""
+        }
+        ${
+            mineOpen.length
+                ? `
+                    <h3>
+                        Твои открытые вызовы
+                    </h3>
+                    ${
+                        mineOpen.map(d => `
+                            <div class="duel-row">
+                                Ждёт соперника (твой ход скрыт)
+                                <button
+                                    class="action duel-cancel"
+                                    data-id="${Number(d.id)}"
+                                    type="button">
+                                    Отменить
+                                </button>
+                            </div>
+                        `).join("")
+                    }
+                `
+                : ""
+        }
+        <h3>
+            Оставить вызов
+        </h3>
+        <p>
+            Выбери свой ход — его увидит только сервер:
+        </p>
+        <div class="duel-moves" id="duelCreate">
+            ${moveButtons("")}
+        </div>
+        <h3>
+            Открытые вызовы игроков
+        </h3>
+        ${
+            (r.open || []).length
+                ? r.open.map(d => `
+                    <div class="duel-row">
+                        <b>
+                            ${esc(d.avatar || "🥚")}
+                            ${esc(playerLabel(d.username))}
+                        </b>
+                        · ${esc(duelAge(d.age))}
+                        <div class="duel-moves">
+                            ${moveButtons(`data-duel="${Number(d.id)}"`)}
+                        </div>
+                    </div>
+                `).join("")
+                : `
+                    <p>
+                        Пока нет открытых вызовов.
+                        Оставь свой — его примут!
+                    </p>
+                `
+        }
+    `;
+    document
+        .querySelectorAll("#duelCreate [data-move]")
+        .forEach(button => {
+            button.onclick =
+                () => createDuel(
+                    button.dataset.move
+                );
+        });
+    document
+        .querySelectorAll("[data-duel]")
+        .forEach(button => {
+            button.onclick =
+                () => acceptDuel(
+                    Number(button.dataset.duel),
+                    button.dataset.move
+                );
+        });
+    document
+        .querySelectorAll(".duel-cancel")
+        .forEach(button => {
+            button.onclick =
+                () => cancelDuel(
+                    Number(button.dataset.id)
+                );
+        });
+}
+async function createDuel(move) {
+    try {
+        await api(
+            "/api/duel/create",
+            {
+                method: "POST",
+                body: JSON.stringify({ move })
+            }
+        );
+        toast("⚔️ Вызов оставлен!");
+        openDuel();
+    } catch (e) {
+        toast(e.message);
+    }
+}
+async function cancelDuel(id) {
+    try {
+        await api(
+            "/api/duel/cancel",
+            {
+                method: "POST",
+                body: JSON.stringify({ id })
+            }
+        );
+        openDuel();
+    } catch (e) {
+        toast(e.message);
+        openDuel();
+    }
+}
+async function acceptDuel(id, move) {
+    try {
+        const r =
+            await api(
+                "/api/duel/accept",
+                {
+                    method: "POST",
+                    body: JSON.stringify({ id, move })
+                }
+            );
+        if (r.data) {
+            setData(r.data);
+        }
+        $("gameArea").innerHTML = `
+            <h3>
+                ${esc(duelResultTitle(r.result))}
+            </h3>
+            <p>
+                Твой ход: <b>${esc(r.my_move)}</b>
+            </p>
+            <p>
+                Ход соперника: <b>${esc(r.opponent_move)}</b>
+            </p>
+            <p>
+                Награда: +${Number(r.reward || 0)} Egg Coins
+            </p>
+            <p>
+                ${esc(limitText(r.left))}
+            </p>
+            <button
+                id="duelBack"
+                class="primary"
+                type="button">
+                ⬅️ К дуэлям
+            </button>
+        `;
+        $("duelBack").onclick = openDuel;
+        toastAchievements(r);
+    } catch (e) {
+        toast(e.message);
+        openDuel();
+    }
+}
+if ($("duelBtn")) {
+    $("duelBtn").onclick = openDuel;
 }
 /* =========================
    ВКЛАДКИ ЯИЦ
@@ -1299,7 +1968,13 @@ if ($("leaderboardBtn")) {
                                             }
                                             ${i + 1}.
                                             ${
-                                                esc( p.username ? playerLabel(p.username) : "ID " + p.user_id )
+                                                esc(
+                                                    p.username
+                                                        ? "@" +
+                                                          p.username
+                                                        : "ID " +
+                                                          p.user_id
+                                                )
                                             }
                                         </b>
                                         <small>
@@ -1465,174 +2140,83 @@ if ($("bonusBtn")) {
 /* =========================
    BOSS
 ========================= */
-function fmtTime(sec) {
-    sec = Math.max(0, Math.floor(Number(sec) || 0));
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = sec % 60;
-    if (h) return `${h} ч ${m} мин`;
-    if (m) return `${m} мин ${s} сек`;
-    return `${s} сек`;
-}
-let bossTimer = null;
-function bossStatusHtml(r) {
-    if (!r.finished) {
-        return `<button id="attackBoss" class="primary" type="button">⚔️ Атаковать</button>`;
-    }
-    const head = r.defeated
-        ? "🎉 Босс побеждён!"
-        : "⌛ Время боя вышло";
-    let action;
-    if (r.reward_available) {
-        action = `<button id="claimBoss" class="primary" type="button">🎁 Забрать награду · +${Number(r.reward_amount).toLocaleString()} 🥚</button>`;
-    } else if (r.reward_claimed) {
-        action = `<p>✅ Награда получена</p>`;
-    } else if (!r.my_damage) {
-        action = `<p>Ты не участвовал в этом бою.</p>`;
-    } else {
-        action = "";
-    }
-    return `
-        <p><b>${head}</b></p>
-        ${action}
-        <p>
-            Следующий босс через
-            <b id="bossNext">${fmtTime(r.next_boss_in)}</b>
-        </p>
-    `;
-}
-function bossLeaderHtml(r) {
-    const rows = r.leaderboard || [];
-    if (!rows.length) {
-        return `<p>Пока никто не атаковал. Будь первым!</p>`;
-    }
-    return rows.map((p, i) => `
-        <div class="leader">
-            <div>
-                <b>${i + 1}. ${esc(playerLabel(p.name))}${p.me ? " (ты)" : ""}</b>
-            </div>
-            <b>⚔️ ${Number(p.damage).toLocaleString()}</b>
-        </div>
-    `).join("");
-}
-function updateBossView(r) {
-    const maxHp = Math.max(1, Number(r.max_hp || 1));
-    const hp = Math.max(0, Number(r.hp || 0));
-    if ($("bossHp")) {
-        $("bossHp").textContent =
-            `${hp.toLocaleString()} / ${maxHp.toLocaleString()}`;
-    }
-    if ($("bossBarFill")) {
-        $("bossBarFill").style.width =
-            Math.min(100, hp / maxHp * 100) + "%";
-    }
-    if ($("bossMyDamage")) {
-        $("bossMyDamage").textContent =
-            Number(r.my_damage || 0).toLocaleString();
-    }
-}
-function renderBoss(r) {
-    clearInterval(bossTimer);
-    openModal(`
-        <h2>👾 EGG BOSS</h2>
-        <div class="boss-name">🌑 ${esc(r.name || "Босс")}</div>
-        <div class="boss-hp" id="bossHp"></div>
-        <div class="boss-bar"><div id="bossBarFill"></div></div>
-        <p>
-            ⏱ ${r.finished ? "Бой окончен" : "До конца боя:"}
-            ${r.finished ? "" : `<b id="bossTimer">${fmtTime(r.seconds_left)}</b>`}
-        </p>
-        <p>⚔️ Твой урон: <b id="bossMyDamage"></b></p>
-        <div id="bossActions">${bossStatusHtml(r)}</div>
-        <h3>🏆 Лучшие бойцы</h3>
-        <div id="bossBoard">${bossLeaderHtml(r)}</div>
-    `);
-    updateBossView(r);
-    /* обратный отсчёт */
-    const left = r.finished ? Number(r.next_boss_in || 0) : Number(r.seconds_left || 0);
-    const endAt = Date.now() + left * 1000;
-    bossTimer = setInterval(() => {
-        const target = $("bossTimer") || $("bossNext");
-        if (!target) {
-            clearInterval(bossTimer);
-            return;
-        }
-        const sec = Math.max(0, Math.round((endAt - Date.now()) / 1000));
-        target.textContent = fmtTime(sec);
-        if (sec <= 0) {
-            clearInterval(bossTimer);
-            loadBoss();
-        }
-    }, 1000);
-    if ($("attackBoss")) {
-        $("attackBoss").onclick = async () => {
-            const button = $("attackBoss");
-            button.disabled = true;
-            try {
-                const x = await api(
-                    "/api/boss/attack",
-                    {
-                        method: "POST",
-                        body: "{}"
-                    }
-                );
-                setData(x.data);
-                (x.new_achievements || []).forEach(a => {
-                    toast(`🏆 ${a.name} · +${a.reward} Egg Coins`);
-                });
-                r.hp = x.hp;
-                r.my_damage = x.my_damage;
-                if (x.defeated) {
-                    toast("🎉 Босс побеждён!");
-                    await loadBoss();
-                    return;
-                }
-                toast(`⚔️ -${x.damage} HP`);
-                updateBossView(r);
-                try {
-                    const fresh = await api("/api/boss");
-                    if ($("bossBoard")) {
-                        $("bossBoard").innerHTML = bossLeaderHtml(fresh);
-                    }
-                } catch (e) {
-                    /* список бойцов обновится при следующем открытии */
-                }
-            } catch (e) {
-                toast(e.message);
-            } finally {
-                setTimeout(() => {
-                    if ($("attackBoss")) {
-                        $("attackBoss").disabled = false;
-                    }
-                }, 700);
-            }
-        };
-    }
-    if ($("claimBoss")) {
-        $("claimBoss").onclick = async () => {
-            $("claimBoss").disabled = true;
-            try {
-                const x = await api(
-                    "/api/boss/reward",
-                    {
-                        method: "POST",
-                        body: "{}"
-                    }
-                );
-                setData(x.data);
-                toast(`🎁 +${x.reward} Egg Coins`);
-                loadBoss();
-            } catch (e) {
-                toast(e.message);
-                loadBoss();
-            }
-        };
-    }
-}
 async function loadBoss() {
     try {
-        const r = await api("/api/boss");
-        renderBoss(r);
+        const r =
+            await api(
+                "/api/boss"
+            );
+        const maxHp =
+            Math.max(
+                1,
+                Number(r.max_hp || 1)
+            );
+        const hp =
+            Math.max(
+                0,
+                Number(r.hp || 0)
+            );
+        openModal(`
+            <h2>
+                👾 EGG BOSS
+            </h2>
+            <div class="boss-name">
+                🌑 Тёмный Хранитель
+            </div>
+            <div class="boss-hp">
+                ${hp}/${maxHp}
+            </div>
+            <div class="boss-bar">
+                <div
+                    style="
+                        width:${Math.min(
+                            100,
+                            hp / maxHp * 100
+                        )}%
+                    "
+                ></div>
+            </div>
+            <p>
+                ⚔️ Твой урон:
+                <b>
+                    ${r.my_damage || 0}
+                </b>
+            </p>
+            <button
+                id="attackBoss"
+                class="primary"
+                type="button"
+            >
+                ⚔️ Атаковать
+            </button>
+        `);
+        $("attackBoss").onclick =
+            async () => {
+                try {
+                    const x =
+                        await api(
+                            "/api/boss/attack",
+                            {
+                                method:
+                                    "POST",
+                                body: "{}"
+                            }
+                        );
+                    setData(
+                        x.data
+                    );
+                    toast(
+                        x.defeated
+                            ? "🎉 Босс побеждён!"
+                            : `⚔️ -${x.damage} HP`
+                    );
+                    loadBoss();
+                } catch (e) {
+                    toast(
+                        e.message
+                    );
+                }
+            };
     } catch (e) {
         toast(e.message);
     }
@@ -1813,92 +2397,182 @@ if ($("profileItems")) {
 ========================= */
 async function loadPets() {
     try {
-        const r = await api("/api/pets");
-        const all = Object.values(r.pets || {});
-        const owned = all.filter(p => p.owned);
-        const locked = all.filter(p => !p.owned);
-        const active = r.active_pet || null;
+        const r =
+            await api(
+                "/api/pets"
+            );
+        const pets =
+            r.pets ||
+            r.items ||
+            [];
+        const owned =
+            r.owned ||
+            r.player_pets ||
+            r.my_pets ||
+            [];
+        const active =
+            r.active_pet ||
+            null;
         openModal(`
-            <h2>🐾 Питомцы</h2>
-            <div class="item-card">
-                ${
-                    active
-                        ? `
-                            <h3>⭐ Активный питомец</h3>
-                            <b>${esc(active.name)}</b>
-                            <p>${esc(active.rarity)}</p>
-                            <p>Бонус: <b>+${active.bonus_percent}% Egg Coins</b>
-                            к играм, обмену и сундукам</p>
-                        `
-                        : `<p>🐾 Активного питомца нет.
-                           ${owned.length ? "Выбери одного ниже." : ""}</p>`
-                }
-            </div>
-            <h3>🎒 Мои питомцы (${owned.length}/${all.length})</h3>
+            <h2>
+                🐾 Питомцы
+            </h2>
+            ${
+                active
+                    ? `
+                        <div class="item-card">
+                            <h3>
+                                ⭐ Активный питомец
+                            </h3>
+                            <b>
+                                🐾 ${esc(
+                                    active.name ||
+                                    "Питомец"
+                                )}
+                            </b>
+                            <p>
+                                Редкость:
+                                ${esc(
+                                    active.rarity ||
+                                    "—"
+                                )}
+                            </p>
+                            <p>
+                                Бонус:
+                                +${active.bonus_value || 0}
+                            </p>
+                        </div>
+                    `
+                    : `
+                        <div class="item-card">
+                            🐾 Активного питомца нет.
+                        </div>
+                    `
+            }
+            <h3>
+                🎒 Мои питомцы
+            </h3>
             ${
                 owned.length
                     ? owned.map(p => `
                         <div class="item-card">
                             <div class="item-top">
-                                <b>${esc(p.name)}</b>
-                                <span>${esc(p.rarity)}</span>
+                                <b>
+                                    🐾 ${esc(
+                                        p.name ||
+                                        "Питомец"
+                                    )}
+                                </b>
+                                <span>
+                                    ${esc(
+                                        p.rarity ||
+                                        ""
+                                    )}
+                                </span>
                             </div>
-                            <p>${esc(p.bonus)}</p>
+                            <p>
+                                ${esc(
+                                    p.bonus_type ||
+                                    "Бонус"
+                                )}
+                                :
+                                +${p.bonus_value || 0}
+                            </p>
                             <button
                                 class="action activate-pet"
-                                data-id="${p.id}"
+                                data-id="${
+                                    p.pet_id ??
+                                    p.id
+                                }"
                                 type="button"
-                                ${p.active ? "disabled" : ""}
+                                ${
+                                    p.active
+                                        ? "disabled"
+                                        : ""
+                                }
                             >
-                                ${p.active ? "✅ Активен" : "⚡ Активировать"}
+                                ${
+                                    p.active
+                                        ? "✅ Активен"
+                                        : "⚡ Активировать"
+                                }
                             </button>
                         </div>
                     `).join("")
-                    : `<div class="item-card">
-                           🎒 У тебя пока нет питомцев.<br>
-                           <small>${esc(r.how_to_get || "")}</small>
-                       </div>`
-            }
-            ${
-                locked.length
-                    ? `
-                        <h3>📖 Ещё не открыты</h3>
-                        ${locked.map(p => `
-                            <div class="item-card">
-                                <div class="item-top">
-                                    <b>🔒 ${esc(p.name)}</b>
-                                    <span>${esc(p.rarity)}</span>
-                                </div>
-                                <p>${esc(p.bonus)}</p>
-                            </div>
-                        `).join("")}
+                    : `
+                        <div class="item-card">
+                            🎒 У тебя пока нет питомцев.
+                        </div>
                     `
+            }
+            <h3>
+                📖 Все питомцы
+            </h3>
+            ${
+                pets.length
+                    ? pets.map(p => `
+                        <div class="item-card">
+                            <div class="item-top">
+                                <b>
+                                    🐾 ${esc(
+                                        p.name ||
+                                        "Питомец"
+                                    )}
+                                </b>
+                                <span>
+                                    ${esc(
+                                        p.rarity ||
+                                        ""
+                                    )}
+                                </span>
+                            </div>
+                            <p>
+                                ${esc(
+                                    p.bonus_type ||
+                                    "Бонус"
+                                )}
+                                :
+                                +${p.bonus_value || 0}
+                            </p>
+                        </div>
+                    `).join("")
                     : ""
             }
         `);
         document
             .querySelectorAll(".activate-pet")
             .forEach(button => {
-                button.onclick = async () => {
-                    try {
-                        const x = await api(
-                            "/api/pets/activate",
-                            {
-                                method: "POST",
-                                body: JSON.stringify({
-                                    pet_id: Number(button.dataset.id)
-                                })
-                            }
-                        );
-                        if (x.data) {
-                            setData(x.data);
+                button.onclick =
+                    async () => {
+                        try {
+                            const x =
+                                await api(
+                                    "/api/pets/activate",
+                                    {
+                                        method:
+                                            "POST",
+                                        body:
+                                            JSON.stringify({
+                                                pet_id:
+                                                    Number(
+                                                        button
+                                                            .dataset
+                                                            .id
+                                                    )
+                                            })
+                                    }
+                                );
+                            toast(
+                                x.message ||
+                                "🐾 Питомец активирован"
+                            );
+                            loadPets();
+                        } catch (e) {
+                            toast(
+                                e.message
+                            );
                         }
-                        toast("🐾 Питомец активирован");
-                        loadPets();
-                    } catch (e) {
-                        toast(e.message);
-                    }
-                };
+                    };
             });
     } catch (e) {
         toast(e.message);
@@ -2095,16 +2769,11 @@ async function openChest(chestId) {
                 r.reward.type === "pet"
             ) {
                 toast(
-                        `🐾 Получен питомец: ${r.reward.pet?.name || "Питомец"}` +
-                        (r.reward.auto_activated
-                            ? " · активирован автоматически!"
-                            : " · включи его в разделе «Питомцы»")
-                    );
-                } else if (r.reward.type === "pet_duplicate") {
-                    toast(
-                        `🐾 ${r.reward.pet?.name || "Питомец"} у тебя уже есть · ` +
-                        `+${r.reward.amount} Egg Coins взамен`
-                    );
+                    `🐾 Получен питомец: ${
+                        r.reward.pet?.name ||
+                        "Питомец"
+                    }`
+                );
             } else if (
                 r.reward.type === "coins"
             ) {
@@ -2747,7 +3416,7 @@ async function loadEggPass() {
                     За каждый уровень ты забираешь награду
                     в Egg Coins.
                     💎 Premium даёт вторую, бо́льшую награду
-                    за те же уровни ${r.premium_price || premium ? "" : "(пока недоступен)"}.
+                    за те же уровни (пока недоступен).
                 </p>
                 <details>
                     <summary>
@@ -2764,11 +3433,8 @@ async function loadEggPass() {
                 </details>
             </div>
             ${
-                !premium && r.premium_price
-                    ? `<button id="passBuyPremium" class="primary" type="button">💎 Купить Premium · ${Number(r.premium_price).toLocaleString()} 🥚</button>`
-                    : ""
-            }
-            ${ claimable > 0 ? `
+                claimable > 0
+                    ? `
                         <button
                             id="passClaimAll"
                             class="primary"
@@ -2839,30 +3505,8 @@ async function loadEggPass() {
                     );
             });
         if ($("passClaimAll")) {
-            $("passClaimAll").onclick = claimAllEggPass;
-        }
-        if ($("passBuyPremium")) {
-            $("passBuyPremium").onclick = async () => {
-                const price = Number(r.premium_price).toLocaleString();
-                const ok = await askConfirm(
-                    `Купить Premium Egg Pass за ${price} Egg Coins?`
-                );
-                if (!ok) return;
-                try {
-                    const x = await api(
-                        "/api/egg-pass/premium",
-                        {
-                            method: "POST",
-                            body: "{}"
-                        }
-                    );
-                    setData(x.data);
-                    toast("💎 Premium активирован!");
-                    loadEggPass();
-                } catch (e) {
-                    toast(e.message);
-                }
-            };
+            $("passClaimAll").onclick =
+                claimAllEggPass;
         }
     } catch (e) {
         toast(e.message);
